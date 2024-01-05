@@ -3,14 +3,16 @@ use pyo3::prelude::*;
 
 #[pyclass(name = "Level2File")]
 pub struct PyLevel2File {
+    #[pyo3(get)]
     a: f64,
+    #[pyo3(get)]
     b: f64,
 }
 
 impl PyLevel2File {
     pub(crate) fn new(a: f64, b: f64) -> Self {
         Self {
-            a: a / 2.0,
+            a: a / 3.0,
             b: b * 5.0
         }
     }
