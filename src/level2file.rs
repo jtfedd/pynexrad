@@ -10,8 +10,8 @@ pub struct PyLevel2File {
 impl PyLevel2File {
     pub(crate) fn new(a: f64, b: f64) -> Self {
         Self {
-            a,
-            b
+            a: a / 2.0,
+            b: b * 5.0
         }
     }
 }
