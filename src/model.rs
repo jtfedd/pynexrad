@@ -11,10 +11,7 @@ pub struct PyLevel2File {
 
 impl PyLevel2File {
     pub(crate) fn new(reflectivity: PyScan, velocity: PyScan) -> Self {
-        Self {
-            reflectivity, 
-            velocity,
-        }
+        Self { reflectivity, velocity }
     }
 }
 
@@ -28,14 +25,8 @@ pub struct PyScan {
 }
 
 impl PyScan {
-    pub(crate) fn empty() -> Self {
-        let meta = vec![PySweep::empty()];
-        let data: Vec<f32> = vec![];
-
-        return Self {
-            meta,
-            data,
-        }
+    pub(crate) fn new(meta: Vec<PySweep>, data: Vec<f32>) -> Self {
+        Self { meta, data }
     }
 }
 
@@ -43,30 +34,30 @@ impl PyScan {
 #[pyclass(name = "Sweep")]
 pub struct PySweep {
     #[pyo3(get)]
-    elevation: f32,
+    pub elevation: f32,
 
     #[pyo3(get)]
-    az_first: f32,
+    pub az_first: f32,
     #[pyo3(get)]
-    az_step: f32,
+    pub az_step: f32,
     #[pyo3(get)]
-    az_count: i32,
+    pub az_count: i32,
 
     #[pyo3(get)]
-    range_first: f32,
+    pub range_first: f32,
     #[pyo3(get)]
-    range_step: f32,
+    pub range_step: f32,
     #[pyo3(get)]
-    range_count: i32,
+    pub range_count: i32,
 
     #[pyo3(get)]
-    offset: i32,
+    pub offset: i32,
 }
 
 impl PySweep {
-    pub(crate) fn empty() -> Self {
+    pub(crate) fn empty(elevation: f32) -> Self {
         Self {
-            elevation: 0.0,
+            elevation,
             az_first: 0.0,
             az_step: 0.0,
             az_count: 0,
@@ -74,6 +65,28 @@ impl PySweep {
             range_step: 0.0,
             range_count: 0,
             offset: 0,
+        }
+    }
+
+    pub(crate) fn new(
+        elevation: f32,
+        az_first:f32,
+        az_step: f32,
+        az_count: i32,
+        range_first: f32,
+        range_step: f32,
+        range_count: i32,
+        offset: i32,
+    ) -> Self {
+        Self {
+            elevation,
+            az_first,
+            az_step,
+            az_count,
+            range_first,
+            range_step,
+            range_count,
+            offset
         }
     }
 }

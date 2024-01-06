@@ -10,7 +10,7 @@ use crate::model::PyLevel2File;
 fn parse_nexrad_file(bytes: Vec<u8>) -> PyLevel2File {
     let decompressed = decompress(bytes);
     let decoded = decode_file(&decompressed).expect("decodes file");
-    *convert_nexrad_file(&decoded)
+    convert_nexrad_file(&decoded)
 }
 
 /// A Python module implemented in Rust.
