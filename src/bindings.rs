@@ -11,13 +11,8 @@ use crate::model::PyLevel2File;
 /// Decodes a nexrad file given bytes
 #[pyfunction]
 fn parse_nexrad_file(bytes: Vec<u8>) -> PyLevel2File {
-    println!("Decompressing");
     let decompressed = decompress(bytes);
-
-    println!("Decoding");
     let decoded = decode_file(&decompressed).expect("decodes file");
-
-    println!("Converting");
     convert_nexrad_file(&decoded)
 }
 
@@ -30,16 +25,13 @@ fn download_nexrad_file(
     day: u32, 
     identifier: &str,
 ) -> PyLevel2File {
-    println!("Downloading");
-
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .unwrap();
 
     let bytes = rt.block_on(async {
-        let date = NaiveDate::from_ymd_opt(year, month, day)
-            .expect(&format!("date is valid"));
+        let date = NaiveDate::from_ymd_opt(year, month, day).expect("date is valid");
         download_file(&FileMetadata::new(site.to_string(), date, identifier.to_string())).await
     }).expect("Should download without error");
 
