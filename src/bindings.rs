@@ -2,9 +2,10 @@ use tokio;
 use pyo3::prelude::*;
 use nexrad::decode::decode_file;
 use nexrad::download::download_file;
+use nexrad::file::FileMetadata;
+use chrono::NaiveDate;
 use crate::decompress::decompress;
 use crate::convert::convert_nexrad_file;
-use crate::file::PyFileMetadata;
 use crate::model::PyLevel2File;
 
 /// Decodes a nexrad file given bytes
@@ -22,7 +23,13 @@ fn parse_nexrad_file(bytes: Vec<u8>) -> PyLevel2File {
 
 /// Downloads and decodes a nexrad file
 #[pyfunction]
-fn download_nexrad_file(file_meta: PyFileMetadata) -> PyLevel2File {
+fn download_nexrad_file(
+    site: &str, 
+    year: i32, 
+    month: u32, 
+    day: u32, 
+    identifier: &str,
+) -> PyLevel2File {
     println!("Downloading");
 
     let rt = tokio::runtime::Builder::new_current_thread()
@@ -31,7 +38,9 @@ fn download_nexrad_file(file_meta: PyFileMetadata) -> PyLevel2File {
         .unwrap();
 
     let bytes = rt.block_on(async {
-        download_file(&file_meta.to_nexrad_file_metadata()).await
+        let date = NaiveDate::from_ymd_opt(year, month, day)
+            .expect(&format!("date is valid"));
+        download_file(&FileMetadata::new(site.to_string(), date, identifier.to_string())).await
     }).expect("Should download without error");
 
     parse_nexrad_file(bytes)
@@ -43,6 +52,5 @@ fn pynexrad(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse_nexrad_file, m)?)?;
     m.add_function(wrap_pyfunction!(download_nexrad_file, m)?)?;
     m.add_class::<PyLevel2File>()?;
-    m.add_class::<PyFileMetadata>()?;
     Ok(())
 }

@@ -7,13 +7,13 @@ use crate::model::PySweep;
 const MIN_SEPARATION: f32 = 0.1;
 
 pub fn convert_nexrad_file<'a>(file: &'a DataFile) -> PyLevel2File {
-    let reflectivity = extract_volume(file, "ref");
-    let velocity = extract_volume(file, "vel");
+    let reflectivity = extract_volume(file, "ref", -20.0, 80.0);
+    let velocity = extract_volume(file, "vel", -100.0, 100.0);
 
     return PyLevel2File::new(reflectivity, velocity)
 }
 
-fn extract_volume(file: &DataFile, data_type: &str) -> PyScan {
+fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PyScan {
     let mut data: Vec<f32> = Vec::new();
     let mut meta: Vec<PySweep> = Vec::new();
 
@@ -25,12 +25,12 @@ fn extract_volume(file: &DataFile, data_type: &str) -> PyScan {
     let mut offset = 0;
 
     for sweep in sweeps {
-        let mut radials: Vec<_> = sweep.1.iter().collect();
-
         // Not every sweep has every data type.
         if !validate_sweep(sweep.1, data_type) {
             continue;
         }
+
+        let mut radials: Vec<_> = sweep.1.iter().collect();
 
         let sample_data_moment = match data_type {
             "ref" => radials[0].reflectivity_data().unwrap(),
@@ -40,7 +40,7 @@ fn extract_volume(file: &DataFile, data_type: &str) -> PyScan {
 
         // Find the approximate elevation of this sweep
         let mut elevation_avg = 0.0 as f32;
-        for radial in sweep.1 {
+        for radial in radials.iter() {
             elevation_avg += radial.header().elev() as f32;
         }
         elevation_avg /= radials.len() as f32;
@@ -48,8 +48,7 @@ fn extract_volume(file: &DataFile, data_type: &str) -> PyScan {
         // Sometimes there are overlapping sweeps on the same elevation.
         // For now discard duplicates.
         let mut elevation_exists = false;
-        let existing_meta: Vec<_> = meta.iter().collect();
-        for m in existing_meta {
+        for m in meta.iter() {
             if (elevation_avg - m.elevation).abs() < MIN_SEPARATION {
                 elevation_exists = true;
                 break;
@@ -110,11 +109,10 @@ fn extract_volume(file: &DataFile, data_type: &str) -> PyScan {
                     let scale = data_moment.data().scale();
                     let offset = data_moment.data().offset();
 
-                    let scaled_gate = if scale == 0.0 {
-                        raw_gate as f32
-                    } else {
-                        (raw_gate as f32 - offset) / scale
-                    };
+                    let mut scaled_gate = (raw_gate as f32 - offset) / scale;
+
+                    scaled_gate += min;
+                    scaled_gate /= max - min;
 
                     data.push(scaled_gate);
                 }
