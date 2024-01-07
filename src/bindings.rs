@@ -11,6 +11,8 @@ use nexrad::file::FileMetadata;
 
 use crate::model::PyLevel2File;
 use crate::convert::convert_nexrad_file;
+use crate::model::PyScan;
+use crate::model::PySweep;
 
 /// Creates a date from year, month, and day
 fn create_date(year: i32, month: u32, day: u32) -> NaiveDate {
@@ -81,5 +83,7 @@ fn pynexrad(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(download_nexrad_file, m)?)?;
     m.add_function(wrap_pyfunction!(list_records, m)?)?;
     m.add_class::<PyLevel2File>()?;
+    m.add_class::<PyScan>()?;
+    m.add_class::<PySweep>()?;
     Ok(())
 }

@@ -1,10 +1,12 @@
+use std::f32::consts::PI;
+
 use nexrad::model::DataFile;
 use nexrad::model::Message31;
 use crate::model::PyLevel2File;
 use crate::model::PyScan;
 use crate::model::PySweep;
 
-const MIN_SEPARATION: f32 = 0.1;
+const MIN_SEPARATION: f32 = 0.1 * PI / 180.0;
 
 pub fn convert_nexrad_file<'a>(file: &'a DataFile) -> PyLevel2File {
     let reflectivity = extract_volume(file, "ref", -20.0, 80.0);
@@ -44,6 +46,7 @@ fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PySca
             elevation_avg += radial.header().elev() as f32;
         }
         elevation_avg /= radials.len() as f32;
+        elevation_avg *= PI / 180.0;
 
         // Sometimes there are overlapping sweeps on the same elevation.
         // For now discard duplicates.
@@ -66,20 +69,20 @@ fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PySca
         let az_count = radials.len() as i32;
         let az_step = if rad_hdr.azm_res() == 1 { 0.5 as f32 } else { 1.0 as f32 };
 
-        let rng_step = sample_data_moment.data().data_moment_range_sample_interval() as f32 / 1000.0;
-        let rng_first = (sample_data_moment.data().data_moment_range() as f32 / 1000.0) - rng_step;
-        let rng_count = sample_data_moment.data().number_data_moment_gates() as i32 + 2;
+        let range_step = sample_data_moment.data().data_moment_range_sample_interval() as f32 / 1000.0;
+        let range_first = (sample_data_moment.data().data_moment_range() as f32 / 1000.0) - range_step;
+        let range_count = sample_data_moment.data().number_data_moment_gates() as i32 + 2;
 
         let sweep_offset = offset;
 
         let sweep_meta = PySweep::new(
-            elevation_avg, 
-            az_first, 
-            az_step, 
-            az_count, 
-            rng_first, 
-            rng_step, 
-            rng_count, 
+            elevation_avg,
+            az_first,
+            az_step,
+            az_count,
+            range_first,
+            range_step,
+            range_count,
             sweep_offset,
         );
 
@@ -121,7 +124,7 @@ fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PySca
             data.push(f32::NAN);
         }
         
-        offset += az_count * rng_count;
+        offset += az_count * range_count;
     }
 
     meta.sort_by(|a, b| a.elevation.partial_cmp(&b.elevation).unwrap());
