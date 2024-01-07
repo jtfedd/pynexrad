@@ -65,9 +65,9 @@ fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PySca
         // we have not yet encountered. Add the data to the array and add a meta entry.
         radials.sort_by(|a, b| a.header().azm().partial_cmp(&b.header().azm()).unwrap());
         let rad_hdr = radials[0].header();
-        let az_first = rad_hdr.azm_indexing_mode() as f32 / 100.0;
+        let az_first = (rad_hdr.azm_indexing_mode() as f32 / 100.0) * PI / 180.0;
         let az_count = radials.len() as i32;
-        let az_step = if rad_hdr.azm_res() == 1 { 0.5 as f32 } else { 1.0 as f32 };
+        let az_step = if rad_hdr.azm_res() == 1 { 0.5 * PI / 180.0 } else { PI / 180.0 };
 
         let range_step = sample_data_moment.data().data_moment_range_sample_interval() as f32 / 1000.0;
         let range_first = (sample_data_moment.data().data_moment_range() as f32 / 1000.0) - range_step;
