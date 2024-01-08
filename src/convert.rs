@@ -73,8 +73,6 @@ fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PySca
         let range_first = (sample_data_moment.data().data_moment_range() as f32 / 1000.0) - range_step;
         let range_count = sample_data_moment.data().number_data_moment_gates() as i32 + 2;
 
-        let sweep_offset = offset;
-
         let sweep_meta = PySweep::new(
             elevation_avg,
             az_first,
@@ -83,7 +81,7 @@ fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PySca
             range_first,
             range_step,
             range_count,
-            sweep_offset,
+            offset,
         );
 
         meta.push(sweep_meta);
@@ -103,11 +101,11 @@ fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PySca
                 raw_gates[i] = *v as u16;
             }
 
-            data.push(f32::NAN);
+            data.push(-1.0);
 
             for raw_gate in raw_gates {
                 if raw_gate < 2 {
-                    data.push(f32::NAN);
+                    data.push(-1.0);
                 } else {
                     let scale = data_moment.data().scale();
                     let offset = data_moment.data().offset();
@@ -121,7 +119,7 @@ fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PySca
                 }
             }
     
-            data.push(f32::NAN);
+            data.push(-1.0);
         }
         
         offset += az_count * range_count;
