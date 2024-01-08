@@ -112,8 +112,16 @@ fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PySca
 
                     let mut scaled_gate = (raw_gate as f32 - offset) / scale;
 
-                    scaled_gate += min;
+                    scaled_gate -= min;
                     scaled_gate /= max - min;
+
+                    if scaled_gate < 0.0 {
+                        scaled_gate = 0.0;
+                    }
+
+                    if scaled_gate > 1.0 {
+                        scaled_gate = 1.0;
+                    }
 
                     data.push(scaled_gate);
                 }
