@@ -1,5 +1,4 @@
 use pyo3::prelude::*;
-use tokio;
 use chrono::NaiveDate;
 
 use nexrad::file::is_compressed;
@@ -28,10 +27,7 @@ fn download_nexrad_file(
     day: u32, 
     identifier: String,
 ) -> PyLevel2File {
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
 
     let mut bytes = rt.block_on(async {
         download_file(&FileMetadata::new(
@@ -58,10 +54,7 @@ fn list_records(
     month: u32,
     day: u32,
 ) -> Vec<String> {
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap();
+    let rt = tokio::runtime::Runtime::new().unwrap();
 
     let files = rt.block_on(async {
         list_files(&site, &create_date(year, month, day)).await
