@@ -107,22 +107,18 @@ jobs:
     needs: [linux, windows, macos, sdist]
     permissions:
       contents: write
+      id-token: write
     steps:
       - name: Download Builds
         uses: actions/download-artifact@v3
         with:
           name: wheels
-          path: wheels
+          path: dist
       - name: Display structure of downloaded files
         run: ls -R
-      - name: "Generate release changelog"
-        id: changelog
-        uses: heinrichreimer/action-github-changelog-generator@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }} 
       - name: Publish Release
         uses: softprops/action-gh-release@v1
         with:
-          body: ${{ steps.changelog.outputs.changelog }}
+          generate_release_notes: true
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
