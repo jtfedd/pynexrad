@@ -4,15 +4,20 @@ use nexrad::{decode::decode_file, decompress::decompress_file, file::is_compress
 fn main() {
     nannou::app(model)
         .update(update)
-        .simple_window(view)
+        .view(view)
         .run();
 }
 
 struct Model {
+    product: String,
     radar: DataFile,
+    center: Point2,
+    zoom: f32,
+    last_mouse: Point2,
+    dragging: bool,
 }
 
-fn model(_app: &App) -> Model {
+fn model(app: &App) -> Model {
     println!("Loading file");
     let file_name = "KDMX20240521_215236_V06";
     let mut file = std::fs::read(file_name).expect("file exists");
@@ -25,21 +30,102 @@ fn model(_app: &App) -> Model {
     println!("Decoding file");
     let radar = decode_file(&file).expect("is valid");
 
-    Model {radar}
+    app.new_window()
+        .size(1280, 800)
+        .key_pressed(key_pressed)
+        .mouse_wheel(mouse_wheel)
+        .mouse_pressed(mouse_pressed)
+        .mouse_released(mouse_released)
+        .mouse_moved(mouse_moved)
+        .build()
+        .unwrap();
+
+    Model {
+        radar,
+        product: String::from("ref"),
+        center: Point2::new(0.0, 0.0),
+        zoom: 0.004,
+        last_mouse: Point2::new(0.0, 0.0),
+        dragging: false,
+    }
 }
 
 fn update(_app: &App, _model: &mut Model, _update: Update) {
 }
 
-fn view(app: &App, model: &Model, frame: Frame) {
-    println!("View");
+fn key_pressed(_app: &App, model: &mut Model, key: Key) {
+    if key == Key::R {
+        model.product = String::from("ref");
+    }
 
+    if key == Key::V {
+        model.product = String::from("vel");
+    }
+}
+
+fn mouse_pressed(_app: &App, model: &mut Model, button: MouseButton) {
+    if button == MouseButton::Left {
+        model.dragging = true;
+    }
+}
+
+fn mouse_released(_app: &App, model: &mut Model, button: MouseButton) {
+    if button == MouseButton::Left {
+        model.dragging = false;
+    }
+}
+
+fn mouse_wheel(_app: &App, model: &mut Model, delta: MouseScrollDelta, _phase: TouchPhase) {
+    let scroll: i32;
+
+    match delta {
+        MouseScrollDelta::LineDelta(_x, y) => {
+            scroll = y as i32;
+        }
+        MouseScrollDelta::PixelDelta(delta) => {
+            scroll = delta.y as i32;
+        }
+    }
+
+    if scroll == 0 {
+        return;
+    }
+
+    for _ in 0..abs(scroll) {
+        if scroll > 0 {
+            model.zoom *= 1.2;
+        } else {
+            model.zoom /= 1.2;
+        }
+    }
+}
+
+fn mouse_moved(_app: &App, model: &mut Model, pos: Point2) {
+    if model.dragging {
+        let delta = pos - model.last_mouse;
+        model.center += delta;
+    }
+
+    model.last_mouse = pos;
+}
+
+fn view(app: &App, model: &Model, frame: Frame) {
     let draw = app.draw();
     draw.background().color(BLACK);
 
-    let requested_product = "vel";
-    let min = -20.0;
-    let max = 20.0;
+    let requested_product = model.product.as_str();
+
+    let min=match requested_product {
+        "ref" => -20.0,
+        "vel" => -20.0,
+        _ => panic!("Unexpected product: {}", requested_product)
+    };
+
+    let max = match requested_product {
+        "ref" => 80.0,
+        "vel" => 20.0,
+        _ => panic!("Unexpected product: {}", requested_product)
+    };
 
     let mut scans: Vec<_> = model.radar.elevation_scans().iter().collect();
     scans.sort_by(|a: &(&u8, &Vec<nexrad::model::Message31>), b| a.0.partial_cmp(&b.0).unwrap());
@@ -49,11 +135,14 @@ fn view(app: &App, model: &Model, frame: Frame) {
     let radial = radials.iter().next().unwrap();
     let radial_reflectivity = radial.reflectivity_data().unwrap().data();
 
-    let moment_range = radial_reflectivity.data_moment_range();
+    let moment_range = radial_reflectivity.data_moment_range() as f32;
     let gate_width = radial_reflectivity.data_moment_range_sample_interval() as f32;
 
+    let boundary = app.window_rect();
+    let center_x = model.center.x;
+    let center_y = model.center.y;
+
     for radial in radials {
-        
         let mut azimuth_angle = radial.header().azm() - 90.0;
         if azimuth_angle < 0.0 {
             azimuth_angle = 360.0 + azimuth_angle;
@@ -102,7 +191,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
             }
         }
 
-        let mut distance = moment_range as f32;
+        let mut distance = moment_range;
 
         for scaled_gate in scaled_gates {
             if scaled_gate < 0.0 {
@@ -110,27 +199,30 @@ fn view(app: &App, model: &Model, frame: Frame) {
                 continue;
             }
 
-            let mut scale = 1.0 / 1000.0;
-            scale *= 4.0;
-
-            let dist_near = distance * scale;
-            let dist_far = (distance + gate_width) * scale;
+            let dist_near = distance * model.zoom;
+            let dist_far = (distance + gate_width) * model.zoom;
 
             let angle_cos = azimuth_first.cos();
             let angle_sin = azimuth_first.sin();
 
-            let point1 = pt2(angle_cos * dist_near, angle_sin * dist_near);
-            let point2 = pt2(angle_cos * dist_far, angle_sin * dist_far);
+            let point1 = pt2(center_x + angle_cos * dist_near, center_y + angle_sin * dist_near);
+            let point2 = pt2(center_x + angle_cos * dist_far, center_y + angle_sin * dist_far);
 
             let angle_cos = azimuth_last.cos();
             let angle_sin = azimuth_last.sin();
 
-            let point3 = pt2(angle_cos * dist_far, angle_sin * dist_far);
-            let point4 = pt2(angle_cos * dist_near, angle_sin * dist_near);
+            let point3 = pt2(center_x + angle_cos * dist_far, center_y + angle_sin * dist_far);
+            let point4 = pt2(center_x + angle_cos * dist_near, center_y + angle_sin * dist_near);
 
-            draw.quad()
-                .color(rgb(scaled_gate, 1.0-scaled_gate, 0.0))
-                .points(point1, point2, point3, point4);
+            if boundary.contains(point1) ||
+                boundary.contains(point2) ||
+                boundary.contains(point3) ||
+                boundary.contains(point4) {
+
+                draw.quad()
+                    .color(rgb(scaled_gate, 1.0-scaled_gate, 0.0))
+                    .points(point1, point2, point3, point4);
+            }
 
             distance += gate_width;
         }
