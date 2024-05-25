@@ -1,0 +1,4 @@
+maturin>=1.4.0
+arm-pyart>=1.18.3
+matplotlib>=3.9.0
+Cartopy>=0.23.0
