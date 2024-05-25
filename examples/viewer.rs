@@ -123,13 +123,13 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     let min=match requested_product {
         "ref" => -20.0,
-        "vel" => -20.0,
+        "vel" => -60.0,
         _ => panic!("Unexpected product: {}", requested_product)
     };
 
     let max = match requested_product {
         "ref" => 80.0,
-        "vel" => 20.0,
+        "vel" => 60.0,
         _ => panic!("Unexpected product: {}", requested_product)
     };
 
