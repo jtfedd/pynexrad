@@ -23,7 +23,7 @@ struct Model {
 
 fn model(app: &App) -> Model {
     println!("Loading file");
-    let file_name = "KDMX20240521_215236_V06";
+    let file_name = "examples/KDMX20240521_215236_V06";
     let mut file = std::fs::read(file_name).expect("file exists");
 
     println!("Decompressing file");

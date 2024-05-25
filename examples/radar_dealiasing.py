@@ -9,7 +9,7 @@ from pyart.testing import get_test_data
 
 warnings.filterwarnings("ignore")
 
-RADAR_FILE = "s3://noaa-nexrad-level2/2024/05/21/KDMX/KDMX20240521_215236_V06"
+RADAR_FILE = "examples/KDMX20240521_215236_V06"
 
 radar = pyart.io.read_nexrad_archive(RADAR_FILE)
 velocity_sweep = 1
