@@ -6,7 +6,6 @@ use image::{DynamicImage,GenericImageView, ImageFormat};
 
 fn main() {
     nannou::app(model)
-        .update(update)
         .view(view)
         .run();
 }
@@ -58,9 +57,6 @@ fn model(app: &App) -> Model {
         last_mouse: Point2::new(0.0, 0.0),
         dragging: false,
     }
-}
-
-fn update(_app: &App, _model: &mut Model, _update: Update) {
 }
 
 fn key_pressed(_app: &App, model: &mut Model, key: Key) {
