@@ -1,5 +1,8 @@
 use nannou::prelude::*;
 use nexrad::{decode::decode_file, decompress::decompress_file, file::is_compressed, model::DataFile};
+use std::io::BufReader;
+use std::fs::File;
+use image::{DynamicImage,GenericImageView, ImageFormat};
 
 fn main() {
     nannou::app(model)
@@ -11,6 +14,8 @@ fn main() {
 struct Model {
     product: String,
     radar: DataFile,
+    ref_scale: DynamicImage,
+    vel_scale: DynamicImage,
     center: Point2,
     zoom: f32,
     last_mouse: Point2,
@@ -30,6 +35,9 @@ fn model(app: &App) -> Model {
     println!("Decoding file");
     let radar = decode_file(&file).expect("is valid");
 
+    let ref_scale = image::load(BufReader::new(File::open("examples/reflectivity_scale.png").expect("file exists")), ImageFormat::Png).expect("image exists");
+    let vel_scale = image::load(BufReader::new(File::open("examples/velocity_scale.png").expect("file exists")), ImageFormat::Png).expect("image exists");
+
     app.new_window()
         .size(1280, 800)
         .key_pressed(key_pressed)
@@ -42,6 +50,8 @@ fn model(app: &App) -> Model {
 
     Model {
         radar,
+        ref_scale,
+        vel_scale,
         product: String::from("ref"),
         center: Point2::new(0.0, 0.0),
         zoom: 0.004,
@@ -142,6 +152,12 @@ fn view(app: &App, model: &Model, frame: Frame) {
     let center_x = model.center.x;
     let center_y = model.center.y;
 
+    let colors = match requested_product {
+        "ref" => &model.ref_scale,
+        "vel" => &model.vel_scale,
+        _ => panic!("Unexpected product: {}", requested_product)
+    };
+
     for radial in radials {
         let mut azimuth_angle = radial.header().azm() - 90.0;
         if azimuth_angle < 0.0 {
@@ -219,8 +235,15 @@ fn view(app: &App, model: &Model, frame: Frame) {
                 boundary.contains(point3) ||
                 boundary.contains(point4) {
 
+                let mut color_index = ((1.0 - scaled_gate) * (colors.height() as f32)).floor() as u32;
+                if color_index == colors.height() {
+                    color_index = colors.height() - 1;
+                }
+
+                let color = colors.get_pixel(0, color_index);
+
                 draw.quad()
-                    .color(rgb(scaled_gate, 1.0-scaled_gate, 0.0))
+                    .color(rgb(color[0], color[1], color[2]))
                     .points(point1, point2, point3, point4);
             }
 
