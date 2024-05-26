@@ -16,15 +16,12 @@ pub fn convert_nexrad_file<'a>(file: &'a DataFile) -> PyLevel2File {
 }
 
 fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PyScan {
-    let mut data: Vec<f32> = Vec::new();
     let mut meta: Vec<PySweep> = Vec::new();
 
     meta.push(PySweep::empty(0.0));
 
     let mut sweeps: Vec<_> = file.elevation_scans().iter().collect();
     sweeps.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-
-    let mut offset = 0;
 
     for sweep in sweeps {
         // Not every sweep has every data type.
@@ -73,18 +70,7 @@ fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PySca
         let range_first = (sample_data_moment.data().data_moment_range() as f32 / 1000.0) - range_step;
         let range_count = sample_data_moment.data().number_data_moment_gates() as i32 + 2;
 
-        let sweep_meta = PySweep::new(
-            elevation_avg,
-            az_first,
-            az_step,
-            az_count,
-            range_first,
-            range_step,
-            range_count,
-            offset,
-        );
-
-        meta.push(sweep_meta);
+        let mut data: Vec<f32> = Vec::new();
 
         for radial in radials {
             let data_moment = match data_type {
@@ -129,8 +115,19 @@ fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PySca
     
             data.push(-1.0);
         }
-        
-        offset += az_count * range_count;
+
+        let sweep_meta = PySweep::new(
+            elevation_avg,
+            az_first,
+            az_step,
+            az_count,
+            range_first,
+            range_step,
+            range_count,
+            data,
+        );
+
+        meta.push(sweep_meta);
     }
 
     meta.sort_by(|a, b| a.elevation.partial_cmp(&b.elevation).unwrap());
@@ -140,7 +137,7 @@ fn extract_volume(file: &DataFile, data_type: &str, min: f32, max: f32) -> PySca
         meta.push(PySweep::empty(meta[meta.len() - 1].elevation + prev_diff))
     }
 
-    PyScan::new(meta, data)
+    PyScan::new(meta)
 }
 
 fn validate_sweep(radials: &Vec<Message31>, data_type: &str) -> bool {
