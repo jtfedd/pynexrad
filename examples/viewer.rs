@@ -88,34 +88,24 @@ fn mouse_released(_app: &App, model: &mut Model, button: MouseButton) {
 }
 
 fn mouse_wheel(_app: &App, model: &mut Model, delta: MouseScrollDelta, _phase: TouchPhase) {
-    let scroll: i32;
+    let scroll: f32;
 
     match delta {
         MouseScrollDelta::LineDelta(_x, y) => {
-            scroll = y as i32;
+            scroll = y as f32;
         }
         MouseScrollDelta::PixelDelta(delta) => {
-            scroll = ((delta.y as f32) / 15.0) as i32;
+            scroll = (delta.y as f32) / 15.0;
         }
     }
 
-    if scroll == 0 {
-        return;
-    }
-
-    for _ in 0..abs(scroll) {
-        if scroll > 0 {
-            model.zoom *= 1.2;
-        } else {
-            model.zoom /= 1.2;
-        }
-    }
+    model.zoom *= f32::powf(1.2, scroll);
 }
 
 fn mouse_moved(_app: &App, model: &mut Model, pos: Point2) {
     if model.dragging {
         let delta = pos - model.last_mouse;
-        model.center += delta;
+        model.center += delta / model.zoom;
     }
 
     model.last_mouse = pos;
@@ -140,8 +130,8 @@ fn view(app: &App, model: &Model, frame: Frame) {
     };
 
     let boundary = app.window_rect();
-    let center_x = model.center.x;
-    let center_y = model.center.y;
+    let center_x = model.center.x * model.zoom;
+    let center_y = model.center.y * model.zoom;
 
     for i in 0..data.az_count {
         let az = (PI / 2.0) - (data.az_first + (i as f32) * data.az_step);
