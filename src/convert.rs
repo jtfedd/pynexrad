@@ -8,7 +8,7 @@ use crate::model::PySweep;
 
 const MIN_SEPARATION: f32 = 0.1 * PI / 180.0;
 
-pub fn convert_nexrad_file<'a>(file: &'a DataFile) -> PyLevel2File {
+pub fn convert_nexrad_file(file: &DataFile) -> PyLevel2File {
     let reflectivity = extract_volume(file, "ref", -20.0, 80.0);
     let velocity = extract_volume(file, "vel", -100.0, 100.0);
 
