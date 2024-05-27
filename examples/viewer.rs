@@ -95,7 +95,7 @@ fn mouse_wheel(_app: &App, model: &mut Model, delta: MouseScrollDelta, _phase: T
             scroll = y as i32;
         }
         MouseScrollDelta::PixelDelta(delta) => {
-            scroll = delta.y as i32;
+            scroll = ((delta.y as f32) / 15.0) as i32;
         }
     }
 
