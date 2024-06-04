@@ -1,10 +1,10 @@
 use pyo3::prelude::*;
 
-use nexrad::file::is_compressed;
 use nexrad::decode::decode_file;
 use nexrad::decompress::decompress_file;
 use nexrad::download::download_file;
 use nexrad::download::list_files;
+use nexrad::file::is_compressed;
 use nexrad::file::FileMetadata;
 
 use crate::convert::convert_nexrad_file;
@@ -16,21 +16,24 @@ use crate::util::create_date;
 /// Downloads and decodes a nexrad file
 #[pyfunction]
 fn download_nexrad_file(
-    site: String, 
-    year: i32, 
-    month: u32, 
-    day: u32, 
+    site: String,
+    year: i32,
+    month: u32,
+    day: u32,
     identifier: String,
 ) -> PyLevel2File {
     let rt = tokio::runtime::Runtime::new().unwrap();
 
-    let mut bytes = rt.block_on(async {
-        download_file(&FileMetadata::new(
-            site,
-            create_date(year, month, day),
-            identifier,
-        )).await
-    }).expect("Should download without error");
+    let mut bytes = rt
+        .block_on(async {
+            download_file(&FileMetadata::new(
+                site,
+                create_date(year, month, day),
+                identifier,
+            ))
+            .await
+        })
+        .expect("Should download without error");
 
     if is_compressed(&bytes) {
         bytes = decompress_file(&bytes).expect("decompresses file");
@@ -43,24 +46,14 @@ fn download_nexrad_file(
 
 /// Lists records from a particular site and date
 #[pyfunction]
-fn list_records(
-    site: String,
-    year: i32,
-    month: u32,
-    day: u32,
-) -> Vec<String> {
+fn list_records(site: String, year: i32, month: u32, day: u32) -> Vec<String> {
     let rt = tokio::runtime::Runtime::new().unwrap();
 
-    let files = rt.block_on(async {
-        list_files(&site, &create_date(year, month, day)).await
-    }).expect("Should download without error");
+    let files = rt
+        .block_on(async { list_files(&site, &create_date(year, month, day)).await })
+        .expect("Should download without error");
 
-    let keys = files
-        .iter()
-        .map(|file| {
-            file.identifier().clone()
-        })
-        .collect();
+    let keys = files.iter().map(|file| file.identifier().clone()).collect();
 
     keys
 }

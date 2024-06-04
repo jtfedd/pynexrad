@@ -40,7 +40,10 @@ impl Volume {
             result_sweeps.push(result_sweep);
         }
 
-        Self{ sweeps: result_sweeps, data_type: String::from(data_type) }
+        Self {
+            sweeps: result_sweeps,
+            data_type: String::from(data_type),
+        }
     }
 }
 

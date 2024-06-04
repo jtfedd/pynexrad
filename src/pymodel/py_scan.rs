@@ -1,5 +1,5 @@
-use pyo3::prelude::*;
 use crate::{model::volume::Volume, pymodel::py_sweep::PySweep};
+use pyo3::prelude::*;
 
 #[derive(Clone)]
 #[pyclass(name = "Scan")]
@@ -21,8 +21,10 @@ impl PyScan {
         sweeps.sort_by(|a, b| a.elevation.partial_cmp(&b.elevation).unwrap());
 
         if sweeps.len() > 1 {
-            let prev_diff = sweeps[sweeps.len() - 1].elevation - sweeps[sweeps.len()-2].elevation;
-            sweeps.push(PySweep::empty(sweeps[sweeps.len() - 1].elevation + prev_diff))
+            let prev_diff = sweeps[sweeps.len() - 1].elevation - sweeps[sweeps.len() - 2].elevation;
+            sweeps.push(PySweep::empty(
+                sweeps[sweeps.len() - 1].elevation + prev_diff,
+            ))
         }
 
         Self { sweeps }

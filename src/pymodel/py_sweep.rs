@@ -40,13 +40,13 @@ impl PySweep {
         }
     }
 
-    pub(crate) fn new( sweep: Sweep, data_type: &str ) -> Self {
+    pub(crate) fn new(sweep: Sweep, data_type: &str) -> Self {
         let mut data: Vec<f32> = Vec::new();
 
         let (min, max) = match data_type {
             "ref" => (-20.0, 80.0),
             "vel" => (-100.0, 100.0),
-            _ => panic!("Unexpected product: {}", data_type)
+            _ => panic!("Unexpected product: {}", data_type),
         };
 
         for radial in 0..sweep.data.radials {
