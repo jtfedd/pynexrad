@@ -1,5 +1,6 @@
 use nannou::prelude::*;
-use nexrad::{decode::decode_file, decompress::decompress_file, file::is_compressed, model::DataFile};
+use nexrad::{decode::decode_file, decompress::decompress_file, file::is_compressed};
+use pynexrad::{convert::convert_nexrad_file, pymodel::py_level2_file::PyLevel2File};
 use std::io::BufReader;
 use std::fs::File;
 use image::{DynamicImage,GenericImageView, ImageFormat};
@@ -12,7 +13,8 @@ fn main() {
 
 struct Model {
     product: String,
-    radar: DataFile,
+    radar: PyLevel2File,
+    sweep: i32,
     ref_scale: DynamicImage,
     vel_scale: DynamicImage,
     center: Point2,
@@ -34,6 +36,9 @@ fn model(app: &App) -> Model {
     println!("Decoding file");
     let radar = decode_file(&file).expect("is valid");
 
+    println!("Converting file");
+    let pyradar = convert_nexrad_file(&radar);
+
     let ref_scale = image::load(BufReader::new(File::open("examples/reflectivity_scale.png").expect("file exists")), ImageFormat::Png).expect("image exists");
     let vel_scale = image::load(BufReader::new(File::open("examples/velocity_scale.png").expect("file exists")), ImageFormat::Png).expect("image exists");
 
@@ -48,12 +53,13 @@ fn model(app: &App) -> Model {
         .unwrap();
 
     Model {
-        radar,
+        radar: pyradar,
+        sweep: 1,
         ref_scale,
         vel_scale,
         product: String::from("ref"),
         center: Point2::new(0.0, 0.0),
-        zoom: 0.004,
+        zoom: 2.0,
         last_mouse: Point2::new(0.0, 0.0),
         dragging: false,
     }
@@ -82,34 +88,24 @@ fn mouse_released(_app: &App, model: &mut Model, button: MouseButton) {
 }
 
 fn mouse_wheel(_app: &App, model: &mut Model, delta: MouseScrollDelta, _phase: TouchPhase) {
-    let scroll: i32;
+    let scroll: f32;
 
     match delta {
         MouseScrollDelta::LineDelta(_x, y) => {
-            scroll = y as i32;
+            scroll = y as f32;
         }
         MouseScrollDelta::PixelDelta(delta) => {
-            scroll = delta.y as i32;
+            scroll = (delta.y as f32) / 15.0;
         }
     }
 
-    if scroll == 0 {
-        return;
-    }
-
-    for _ in 0..abs(scroll) {
-        if scroll > 0 {
-            model.zoom *= 1.2;
-        } else {
-            model.zoom /= 1.2;
-        }
-    }
+    model.zoom *= f32::powf(1.2, scroll);
 }
 
 fn mouse_moved(_app: &App, model: &mut Model, pos: Point2) {
     if model.dragging {
         let delta = pos - model.last_mouse;
-        model.center += delta;
+        model.center += delta / model.zoom;
     }
 
     model.last_mouse = pos;
@@ -121,32 +117,11 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     let requested_product = model.product.as_str();
 
-    let min=match requested_product {
-        "ref" => -20.0,
-        "vel" => -60.0,
+    let data = match requested_product {
+        "ref" => &model.radar.reflectivity.sweeps[model.sweep as usize],
+        "vel" => &model.radar.velocity.sweeps[model.sweep as usize],
         _ => panic!("Unexpected product: {}", requested_product)
     };
-
-    let max = match requested_product {
-        "ref" => 80.0,
-        "vel" => 60.0,
-        _ => panic!("Unexpected product: {}", requested_product)
-    };
-
-    let mut scans: Vec<_> = model.radar.elevation_scans().iter().collect();
-    scans.sort_by(|a: &(&u8, &Vec<nexrad::model::Message31>), b| a.0.partial_cmp(&b.0).unwrap());
-
-    let (_, radials) = scans[1];
-
-    let radial = radials.iter().next().unwrap();
-    let radial_reflectivity = radial.reflectivity_data().unwrap().data();
-
-    let moment_range = radial_reflectivity.data_moment_range() as f32;
-    let gate_width = radial_reflectivity.data_moment_range_sample_interval() as f32;
-
-    let boundary = app.window_rect();
-    let center_x = model.center.x;
-    let center_y = model.center.y;
 
     let colors = match requested_product {
         "ref" => &model.ref_scale,
@@ -154,84 +129,42 @@ fn view(app: &App, model: &Model, frame: Frame) {
         _ => panic!("Unexpected product: {}", requested_product)
     };
 
-    for radial in radials {
-        let mut azimuth_angle = radial.header().azm() - 90.0;
-        if azimuth_angle < 0.0 {
-            azimuth_angle = 360.0 + azimuth_angle;
-        }
-        azimuth_angle = -azimuth_angle;
+    let boundary = app.window_rect();
+    let center_x = model.center.x * model.zoom;
+    let center_y = model.center.y * model.zoom;
 
-        let azimuth_spacing = radial.header().azm_res() as f32;
-        let azimuth_first = (azimuth_angle - (azimuth_spacing / 4.0)) * (PI / 180.0);
-        let azimuth_last = (azimuth_angle + (azimuth_spacing / 4.0)) * (PI / 180.0);
+    for i in 0..data.az_count {
+        let az = (PI / 2.0) - (data.az_first + (i as f32) * data.az_step);
+        let az_first = az - (data.az_step / 2.0);
+        let az_last = az + (data.az_step / 2.0);
 
-        let data_moment = match requested_product {
-            "ref" => radial.reflectivity_data().unwrap(),
-            "vel" => radial.velocity_data().unwrap(),
-            _ => panic!("Unexpected product: {}", requested_product),
-        };
+        let first_cos = az_first.cos();
+        let first_sin = az_first.sin();
+        let last_cos = az_last.cos();
+        let last_sin = az_last.sin();
 
-        let mut raw_gates: Vec<u16> =
-            vec![0; data_moment.data().number_data_moment_gates() as usize];
+        for j in 0..data.range_count {
+            let value = data.data[((i * data.range_count) + j) as usize];
 
-        for (i, v) in data_moment.moment_data().iter().enumerate() {
-            raw_gates[i] = *v as u16;
-        }
-
-        let mut scaled_gates: Vec<f32> = Vec::new();
-        for raw_gate in raw_gates {
-            if raw_gate < 2 {
-                scaled_gates.push(-1.0);
-            } else {
-                let scale = data_moment.data().scale();
-                let offset = data_moment.data().offset();
-
-                let mut scaled_gate = (raw_gate as f32 - offset) / scale;
-
-                scaled_gate -= min;
-                scaled_gate /= max - min;
-
-                if scaled_gate < 0.0 {
-                    scaled_gate = 0.0;
-                }
-
-                if scaled_gate > 1.0 {
-                    scaled_gate = 1.0;
-                }
-
-                scaled_gates.push(scaled_gate);
-            }
-        }
-
-        let mut distance = moment_range;
-
-        for scaled_gate in scaled_gates {
-            if scaled_gate < 0.0 {
-                distance += gate_width;
+            if value < 0.0 {
                 continue;
             }
 
-            let dist_near = distance * model.zoom;
-            let dist_far = (distance + gate_width) * model.zoom;
+            let dist_near = data.range_first + (j as f32 * data.range_step) * model.zoom;
+            let dist_far = data.range_first + ((j + 1) as f32 * data.range_step) * model.zoom;
 
-            let angle_cos = azimuth_first.cos();
-            let angle_sin = azimuth_first.sin();
+            let point1 = pt2(center_x + first_cos * dist_near, center_y + first_sin * dist_near);
+            let point2 = pt2(center_x + first_cos * dist_far, center_y + first_sin * dist_far);
 
-            let point1 = pt2(center_x + angle_cos * dist_near, center_y + angle_sin * dist_near);
-            let point2 = pt2(center_x + angle_cos * dist_far, center_y + angle_sin * dist_far);
-
-            let angle_cos = azimuth_last.cos();
-            let angle_sin = azimuth_last.sin();
-
-            let point3 = pt2(center_x + angle_cos * dist_far, center_y + angle_sin * dist_far);
-            let point4 = pt2(center_x + angle_cos * dist_near, center_y + angle_sin * dist_near);
+            let point3 = pt2(center_x + last_cos * dist_far, center_y + last_sin * dist_far);
+            let point4 = pt2(center_x + last_cos * dist_near, center_y + last_sin * dist_near);
 
             if boundary.contains(point1) ||
                 boundary.contains(point2) ||
                 boundary.contains(point3) ||
                 boundary.contains(point4) {
 
-                let mut color_index = ((1.0 - scaled_gate) * (colors.height() as f32)).floor() as u32;
+                let mut color_index = ((1.0 - value) * (colors.height() as f32)).floor() as u32;
                 if color_index == colors.height() {
                     color_index = colors.height() - 1;
                 }
@@ -242,8 +175,6 @@ fn view(app: &App, model: &Model, frame: Frame) {
                     .color(rgb(color[0], color[1], color[2]))
                     .points(point1, point2, point3, point4);
             }
-
-            distance += gate_width;
         }
     }
 
