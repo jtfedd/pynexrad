@@ -1,6 +1,6 @@
 use nannou::prelude::*;
 use nexrad::{decode::decode_file, decompress::decompress_file, file::is_compressed};
-use pynexrad::{convert::convert_nexrad_file, model::PyLevel2File};
+use pynexrad::{convert::convert_nexrad_file, pymodel::py_level2_file::PyLevel2File};
 use std::io::BufReader;
 use std::fs::File;
 use image::{DynamicImage,GenericImageView, ImageFormat};

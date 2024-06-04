@@ -1,5 +1,4 @@
 use pyo3::prelude::*;
-use chrono::NaiveDate;
 
 use nexrad::file::is_compressed;
 use nexrad::decode::decode_file;
@@ -8,15 +7,11 @@ use nexrad::download::download_file;
 use nexrad::download::list_files;
 use nexrad::file::FileMetadata;
 
-use crate::model::PyLevel2File;
 use crate::convert::convert_nexrad_file;
-use crate::model::PyScan;
-use crate::model::PySweep;
-
-/// Creates a date from year, month, and day
-fn create_date(year: i32, month: u32, day: u32) -> NaiveDate {
-    NaiveDate::from_ymd_opt(year, month, day).expect("date is valid")
-}
+use crate::pymodel::py_level2_file::PyLevel2File;
+use crate::pymodel::py_scan::PyScan;
+use crate::pymodel::py_sweep::PySweep;
+use crate::util::create_date;
 
 /// Downloads and decodes a nexrad file
 #[pyfunction]
