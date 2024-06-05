@@ -2591,7 +2591,7 @@ dependencies = [
 
 [[package]]
 name = "pynexrad"
-version = "0.0.13"
+version = "0.0.15"
 dependencies = [
  "chrono",
  "image 0.25.1",
