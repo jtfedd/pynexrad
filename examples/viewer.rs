@@ -1,14 +1,12 @@
+use image::{DynamicImage, GenericImageView, ImageFormat};
 use nannou::prelude::*;
 use nexrad::{decode::decode_file, decompress::decompress_file, file::is_compressed};
 use pynexrad::{convert::convert_nexrad_file, pymodel::py_level2_file::PyLevel2File};
-use std::io::BufReader;
 use std::fs::File;
-use image::{DynamicImage,GenericImageView, ImageFormat};
+use std::io::BufReader;
 
 fn main() {
-    nannou::app(model)
-        .view(view)
-        .run();
+    nannou::app(model).view(view).run();
 }
 
 struct Model {
@@ -39,8 +37,16 @@ fn model(app: &App) -> Model {
     println!("Converting file");
     let pyradar = convert_nexrad_file(&radar);
 
-    let ref_scale = image::load(BufReader::new(File::open("examples/reflectivity_scale.png").expect("file exists")), ImageFormat::Png).expect("image exists");
-    let vel_scale = image::load(BufReader::new(File::open("examples/velocity_scale.png").expect("file exists")), ImageFormat::Png).expect("image exists");
+    let ref_scale = image::load(
+        BufReader::new(File::open("examples/reflectivity_scale.png").expect("file exists")),
+        ImageFormat::Png,
+    )
+    .expect("image exists");
+    let vel_scale = image::load(
+        BufReader::new(File::open("examples/velocity_scale.png").expect("file exists")),
+        ImageFormat::Png,
+    )
+    .expect("image exists");
 
     app.new_window()
         .size(1280, 800)
@@ -120,13 +126,13 @@ fn view(app: &App, model: &Model, frame: Frame) {
     let data = match requested_product {
         "ref" => &model.radar.reflectivity.sweeps[model.sweep as usize],
         "vel" => &model.radar.velocity.sweeps[model.sweep as usize],
-        _ => panic!("Unexpected product: {}", requested_product)
+        _ => panic!("Unexpected product: {}", requested_product),
     };
 
     let colors = match requested_product {
         "ref" => &model.ref_scale,
         "vel" => &model.vel_scale,
-        _ => panic!("Unexpected product: {}", requested_product)
+        _ => panic!("Unexpected product: {}", requested_product),
     };
 
     let boundary = app.window_rect();
@@ -153,17 +159,29 @@ fn view(app: &App, model: &Model, frame: Frame) {
             let dist_near = data.range_first + (j as f32 * data.range_step) * model.zoom;
             let dist_far = data.range_first + ((j + 1) as f32 * data.range_step) * model.zoom;
 
-            let point1 = pt2(center_x + first_cos * dist_near, center_y + first_sin * dist_near);
-            let point2 = pt2(center_x + first_cos * dist_far, center_y + first_sin * dist_far);
+            let point1 = pt2(
+                center_x + first_cos * dist_near,
+                center_y + first_sin * dist_near,
+            );
+            let point2 = pt2(
+                center_x + first_cos * dist_far,
+                center_y + first_sin * dist_far,
+            );
 
-            let point3 = pt2(center_x + last_cos * dist_far, center_y + last_sin * dist_far);
-            let point4 = pt2(center_x + last_cos * dist_near, center_y + last_sin * dist_near);
+            let point3 = pt2(
+                center_x + last_cos * dist_far,
+                center_y + last_sin * dist_far,
+            );
+            let point4 = pt2(
+                center_x + last_cos * dist_near,
+                center_y + last_sin * dist_near,
+            );
 
-            if boundary.contains(point1) ||
-                boundary.contains(point2) ||
-                boundary.contains(point3) ||
-                boundary.contains(point4) {
-
+            if boundary.contains(point1)
+                || boundary.contains(point2)
+                || boundary.contains(point3)
+                || boundary.contains(point4)
+            {
                 let mut color_index = ((1.0 - value) * (colors.height() as f32)).floor() as u32;
                 if color_index == colors.height() {
                     color_index = colors.height() - 1;

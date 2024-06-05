@@ -38,9 +38,16 @@ impl Sweep {
         let rad_hdr = radials[0].header();
         let az_first = (rad_hdr.azm_indexing_mode() as f32 / 100.0) * PI / 180.0;
         let az_count = radials.len() as i32;
-        let az_step = if rad_hdr.azm_res() == 1 { 0.5 * PI / 180.0 } else { PI / 180.0 };
+        let az_step = if rad_hdr.azm_res() == 1 {
+            0.5 * PI / 180.0
+        } else {
+            PI / 180.0
+        };
 
-        let range_step = sample_data_moment.data().data_moment_range_sample_interval() as f32 / 1000.0;
+        let range_step = sample_data_moment
+            .data()
+            .data_moment_range_sample_interval() as f32
+            / 1000.0;
         let range_first = sample_data_moment.data().data_moment_range() as f32 / 1000.0;
         let range_count = sample_data_moment.data().number_data_moment_gates() as i32;
 
@@ -55,7 +62,8 @@ impl Sweep {
                 _ => panic!("Unexpected product: {}", data_type),
             };
 
-            let mut raw_gates: Vec<u16> = vec![0; data_moment.data().number_data_moment_gates() as usize];
+            let mut raw_gates: Vec<u16> =
+                vec![0; data_moment.data().number_data_moment_gates() as usize];
 
             assert_eq!(data_moment.data().data_word_size(), 8);
             for (i, v) in data_moment.moment_data().iter().enumerate() {
@@ -83,6 +91,6 @@ impl Sweep {
             range_step,
             range_count,
             data,
-        }
+        };
     }
 }

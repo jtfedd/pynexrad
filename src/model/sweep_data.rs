@@ -5,7 +5,7 @@ pub struct SweepData {
     mask: Vec<Vec<bool>>,
 }
 
-impl SweepData{
+impl SweepData {
     pub(crate) fn new(radials: usize, gates: usize) -> Self {
         Self {
             radials,
@@ -28,7 +28,7 @@ impl SweepData{
         if self.mask[radial][gate] {
             panic!("Value at {} {} is masked", radial, gate)
         }
-        
+
         return self.data[radial][gate];
     }
 
