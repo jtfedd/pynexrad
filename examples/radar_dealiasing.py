@@ -6,13 +6,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyart
 from pyart.testing import get_test_data
+from unravel import dealias
 
 warnings.filterwarnings("ignore")
 
 RADAR_FILE = "examples/KDMX20240521_215236_V06"
 
+print("Loading...")
+
 radar = pyart.io.read_nexrad_archive(RADAR_FILE)
 velocity_sweep = 1
+
+print("Dealiasing... (Region based)")
 
 velocity_dealiased = pyart.correct.dealias_region_based(
     radar,
@@ -20,11 +25,35 @@ velocity_dealiased = pyart.correct.dealias_region_based(
     centered=True,
 )
 
+print("Dealiasing... (UNRAVEL)")
+
+nyquist = []
+for i in range(radar.nsweeps):
+    nyquist.append(radar.get_nyquist_vel(i))
+
+print(nyquist)
+
+velocity_unravelled = dealias.unravel_3D_pyart(
+    radar, velname="velocity", dbzname="reflectivity", nyquist_velocity=nyquist
+)
+
+vel_meta = pyart.config.get_metadata("velocity")
+vel_meta["data"] = velocity_unravelled
+vel_meta["_FillValue"] = -9999
+vel_meta["comment"] = (
+    "Corrected using the UNRAVEL algorithm developed by Louf et al. (2020) doi:10.1175/jtech-d-19-0020.1 available at https://github.com/vlouf/dealias"
+)
+vel_meta["long_name"] = "Doppler radial velocity of scatterers away from instrument"
+vel_meta["units"] = "m s-1"
+
 # Add our data dictionary to the radar object
 radar.add_field("corrected_velocity", velocity_dealiased, replace_existing=True)
+radar.add_field("unravelled_velocity", vel_meta, replace_existing=True)
+
+print("Building plots")
 
 fig = plt.figure(figsize=[8, 10])
-ax = plt.subplot(211, projection=ccrs.PlateCarree())
+ax = plt.subplot(311, projection=ccrs.PlateCarree())
 display = pyart.graph.RadarMapDisplay(radar)
 display.plot_ppi_map(
     "corrected_velocity",
@@ -42,7 +71,24 @@ display.plot_ppi_map(
     cmap="pyart_RRate11",
 )
 
-ax2 = plt.subplot(212, projection=ccrs.PlateCarree())
+ax2 = plt.subplot(312, projection=ccrs.PlateCarree())
+display = pyart.graph.RadarMapDisplay(radar)
+display.plot_ppi_map(
+    "unravelled_velocity",
+    ax=ax2,
+    sweep=velocity_sweep,
+    resolution="50m",
+    vmin=-100,
+    vmax=100,
+    max_lat=42.274039,
+    max_lon=-93.957085,
+    min_lat=41.491023,
+    min_lon=-92.977209,
+    projection=ccrs.PlateCarree(),
+    cmap="pyart_RRate11",
+)
+
+ax2 = plt.subplot(313, projection=ccrs.PlateCarree())
 display = pyart.graph.RadarMapDisplay(radar)
 display.plot_ppi_map(
     "velocity",
@@ -58,4 +104,5 @@ display.plot_ppi_map(
     projection=ccrs.PlateCarree(),
     cmap="pyart_RRate11",
 )
+
 plt.show()
