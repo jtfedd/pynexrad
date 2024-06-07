@@ -79,6 +79,34 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
     if key == Key::V {
         model.product = String::from("vel");
     }
+
+    if key == Key::Key0 {
+        model.sweep = 1
+    }
+
+    if key == Key::Up {
+        model.sweep += 1
+    }
+    if key == Key::Down {
+        model.sweep -= 1
+    }
+
+    if model.sweep < 1 {
+        model.sweep = 1
+    }
+
+    let requested_product = model.product.as_str();
+    let product = match requested_product {
+        "ref" => &model.radar.reflectivity,
+        "vel" => &model.radar.velocity,
+        _ => panic!("Unexpected product: {}", requested_product),
+    };
+
+    let sweep_max = (product.sweeps.len() - 2) as i32;
+
+    if model.sweep > sweep_max {
+        model.sweep = sweep_max;
+    }
 }
 
 fn mouse_pressed(_app: &App, model: &mut Model, button: MouseButton) {
