@@ -80,32 +80,32 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
         model.product = String::from("vel");
     }
 
-    if key == Key::Key1 {
+    if key == Key::Key0 {
         model.sweep = 1
     }
-    if key == Key::Key2 {
-        model.sweep = 2
+
+    if key == Key::Up {
+        model.sweep += 1
     }
-    if key == Key::Key3 {
-        model.sweep = 3
+    if key == Key::Down {
+        model.sweep -= 1
     }
-    if key == Key::Key4 {
-        model.sweep = 4
+
+    if model.sweep < 1 {
+        model.sweep = 1
     }
-    if key == Key::Key5 {
-        model.sweep = 5
-    }
-    if key == Key::Key6 {
-        model.sweep = 6
-    }
-    if key == Key::Key7 {
-        model.sweep = 7
-    }
-    if key == Key::Key8 {
-        model.sweep = 8
-    }
-    if key == Key::Key9 {
-        model.sweep = 9
+
+    let requested_product = model.product.as_str();
+    let product = match requested_product {
+        "ref" => &model.radar.reflectivity,
+        "vel" => &model.radar.velocity,
+        _ => panic!("Unexpected product: {}", requested_product),
+    };
+
+    let sweep_max = (product.sweeps.len() - 2) as i32;
+
+    if model.sweep > sweep_max {
+        model.sweep = sweep_max;
     }
 }
 
