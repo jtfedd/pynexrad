@@ -17,6 +17,12 @@ print("Loading...")
 radar = pyart.io.read_nexrad_archive(RADAR_FILE)
 velocity_sweep = 1
 
+nyquist = []
+for i in range(radar.nsweeps):
+    nyquist.append(radar.get_nyquist_vel(i))
+
+print(nyquist)
+
 print("Dealiasing... (Region based)")
 
 velocity_dealiased = pyart.correct.dealias_region_based(
@@ -26,12 +32,6 @@ velocity_dealiased = pyart.correct.dealias_region_based(
 )
 
 print("Dealiasing... (UNRAVEL)")
-
-nyquist = []
-for i in range(radar.nsweeps):
-    nyquist.append(radar.get_nyquist_vel(i))
-
-print(nyquist)
 
 velocity_unravelled = dealias.unravel_3D_pyart(
     radar, velname="velocity", dbzname="reflectivity", nyquist_velocity=nyquist

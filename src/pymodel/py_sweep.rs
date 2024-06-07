@@ -40,7 +40,7 @@ impl PySweep {
         }
     }
 
-    pub(crate) fn new(sweep: Sweep, data_type: &str) -> Self {
+    pub(crate) fn new(sweep: &Sweep, data_type: &str) -> Self {
         let mut data: Vec<f32> = Vec::new();
 
         let (min, max) = match data_type {
@@ -49,13 +49,19 @@ impl PySweep {
             _ => panic!("Unexpected product: {}", data_type),
         };
 
-        for radial in 0..sweep.data.radials {
+        let product = match data_type {
+            "ref" => sweep.reflectivity.as_ref().unwrap(),
+            "vel" => sweep.velocity.as_ref().unwrap(),
+            _ => panic!("Unexpected product {}", data_type),
+        };
+
+        for radial in 0..product.radials {
             data.push(-1.0);
-            for gate in 0..sweep.data.gates {
-                if sweep.data.get_mask(radial, gate) {
+            for gate in 0..product.gates {
+                if product.get_mask(radial, gate) {
                     data.push(-1.0);
                 } else {
-                    let mut value = sweep.data.get_value(radial, gate);
+                    let mut value = product.get_value(radial, gate);
 
                     value -= min;
                     value /= max - min;

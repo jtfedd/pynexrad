@@ -11,10 +11,10 @@ pub struct PyLevel2File {
 }
 
 impl PyLevel2File {
-    pub(crate) fn new(reflectivity: Volume, velocity: Volume) -> Self {
+    pub(crate) fn new(volume: Volume) -> Self {
         Self {
-            reflectivity: PyScan::new(reflectivity),
-            velocity: PyScan::new(velocity),
+            reflectivity: PyScan::new(&volume, "ref"),
+            velocity: PyScan::new(&volume, "vel"),
         }
     }
 }
