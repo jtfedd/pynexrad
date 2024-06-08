@@ -12,44 +12,46 @@ pub(crate) fn despeckle(volume: &mut Volume, threshold: i32) {
         }
 
         let vel = sweep.velocity.as_mut().unwrap();
-        let mut processed = vec![vec![0 as u8; vel.gates]; vel.radials];
+        let mut flags = vec![vec![0 as u8; vel.gates]; vel.radials];
 
         for radial in 0..vel.radials {
             for gate in 0..vel.gates {
                 // Don't process values we have already processed
-                if processed[radial][gate] != 0 {
+                if flags[radial][gate] != 0 {
                     continue;
                 }
 
                 // Don't process masked values, but mark them as processed
                 if vel.get_mask(radial, gate) {
-                    processed[radial][gate] = 1 as u8;
+                    flags[radial][gate] = 1 as u8;
                     continue;
                 }
 
                 let count =
-                    flood_fill(radial, gate, &mut SearchingFiller::new(&mut processed, vel));
+                    flood_fill(radial, gate, &mut SearchingFiller::new(&mut flags, vel));
 
                 flood_fill(
                     radial,
                     gate,
-                    &mut ResultFiller::new(&mut processed, vel, count < threshold),
+                    &mut ResultFiller::new(&mut flags, vel, count < threshold),
                 );
             }
         }
     }
 }
 
+// ResultFiller searches for regions which have flag 2.
+// It updates them to flag 1 and optionally masks them.
 struct ResultFiller<'a> {
-    processed: &'a mut Vec<Vec<u8>>,
+    flags: &'a mut Vec<Vec<u8>>,
     vel: &'a mut SweepData,
     mask: bool,
 }
 
 impl<'a> ResultFiller<'a> {
-    fn new(processed: &'a mut Vec<Vec<u8>>, vel: &'a mut SweepData, mask: bool) -> Self {
+    fn new(flags: &'a mut Vec<Vec<u8>>, vel: &'a mut SweepData, mask: bool) -> Self {
         ResultFiller {
-            processed,
+            flags,
             vel,
             mask,
         }
@@ -58,11 +60,11 @@ impl<'a> ResultFiller<'a> {
 
 impl<'a> FloodFiller for ResultFiller<'a> {
     fn should_fill(&self, radial: usize, gate: usize) -> bool {
-        self.processed[radial][gate] == 2
+        self.flags[radial][gate] == 2
     }
 
     fn fill(&mut self, radial: usize, gate: usize) {
-        self.processed[radial][gate] = 1 as u8;
+        self.flags[radial][gate] = 1 as u8;
         if self.mask {
             self.vel.set_mask(radial, gate);
         }
@@ -77,24 +79,26 @@ impl<'a> FloodFiller for ResultFiller<'a> {
     }
 }
 
+// SearchingFiller looks for regions which are unflagged and unmasked.
+// It will fill the contiguous region with flag 2
 struct SearchingFiller<'a> {
-    processed: &'a mut Vec<Vec<u8>>,
+    flags: &'a mut Vec<Vec<u8>>,
     vel: &'a mut SweepData,
 }
 
 impl<'a> SearchingFiller<'a> {
-    fn new(processed: &'a mut Vec<Vec<u8>>, vel: &'a mut SweepData) -> Self {
-        SearchingFiller { processed, vel }
+    fn new(flags: &'a mut Vec<Vec<u8>>, vel: &'a mut SweepData) -> Self {
+        SearchingFiller { flags, vel }
     }
 }
 
 impl<'a> FloodFiller for SearchingFiller<'a> {
     fn should_fill(&self, radial: usize, gate: usize) -> bool {
-        self.processed[radial][gate] == 0 && !self.vel.get_mask(radial, gate)
+        self.flags[radial][gate] == 0 && !self.vel.get_mask(radial, gate)
     }
 
     fn fill(&mut self, radial: usize, gate: usize) {
-        self.processed[radial][gate] = 2 as u8;
+        self.flags[radial][gate] = 2 as u8;
     }
 
     fn radial_max(&self) -> usize {
