@@ -27,8 +27,7 @@ pub(crate) fn despeckle(volume: &mut Volume, threshold: i32) {
                     continue;
                 }
 
-                let count =
-                    flood_fill(radial, gate, &mut SearchingFiller::new(&mut flags, vel));
+                let count = flood_fill(radial, gate, &mut SearchingFiller::new(&mut flags, vel));
 
                 flood_fill(
                     radial,
@@ -50,11 +49,7 @@ struct ResultFiller<'a> {
 
 impl<'a> ResultFiller<'a> {
     fn new(flags: &'a mut Vec<Vec<u8>>, vel: &'a mut SweepData, mask: bool) -> Self {
-        ResultFiller {
-            flags,
-            vel,
-            mask,
-        }
+        ResultFiller { flags, vel, mask }
     }
 }
 
