@@ -11,7 +11,7 @@ impl SweepData {
             radials,
             gates,
             data: vec![vec![0.0 as f32; gates]; radials],
-            mask: vec![vec![false; gates]; radials],
+            mask: vec![vec![true; gates]; radials],
         }
     }
 
