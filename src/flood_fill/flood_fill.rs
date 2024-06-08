@@ -2,11 +2,7 @@ use std::collections::VecDeque;
 
 use crate::flood_fill::flood_filler::FloodFiller;
 
-pub(crate) fn flood_fill(
-    radial: usize,
-    gate: usize,
-    filler: &mut impl FloodFiller,
-) -> i32 {
+pub(crate) fn flood_fill(radial: usize, gate: usize, filler: &mut impl FloodFiller) -> i32 {
     let mut count = 0;
 
     let mut deq: VecDeque<(usize, usize)> = VecDeque::new();
@@ -35,10 +31,10 @@ pub(crate) fn flood_fill(
         deq.push_back((prev_radial, g));
         deq.push_back((next_radial, g));
         if g > 0 {
-            deq.push_back((r, g-1));
+            deq.push_back((r, g - 1));
         }
         if g < filler.gate_max() - 1 {
-            deq.push_back((r, g+1));
+            deq.push_back((r, g + 1));
         }
     }
 

@@ -1,4 +1,7 @@
-use crate::{flood_fill::{flood_fill::flood_fill, flood_filler::FloodFiller}, model::{sweep_data::SweepData, volume::Volume}};
+use crate::{
+    flood_fill::{flood_fill::flood_fill, flood_filler::FloodFiller},
+    model::{sweep_data::SweepData, volume::Volume},
+};
 
 // Removes all isolated groups of velocity data which have
 // a total number of gates less than the threshold
@@ -24,11 +27,8 @@ pub(crate) fn despeckle(volume: &mut Volume, threshold: i32) {
                     continue;
                 }
 
-                let count = flood_fill(
-                    radial,
-                    gate,
-                    &mut SearchingFiller::new(&mut processed, vel),
-                );
+                let count =
+                    flood_fill(radial, gate, &mut SearchingFiller::new(&mut processed, vel));
 
                 flood_fill(
                     radial,
@@ -48,7 +48,11 @@ struct ResultFiller<'a> {
 
 impl<'a> ResultFiller<'a> {
     fn new(processed: &'a mut Vec<Vec<u8>>, vel: &'a mut SweepData, mask: bool) -> Self {
-        ResultFiller { processed, vel, mask }
+        ResultFiller {
+            processed,
+            vel,
+            mask,
+        }
     }
 }
 

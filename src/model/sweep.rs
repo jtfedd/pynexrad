@@ -21,7 +21,12 @@ pub struct Sweep {
     pub velocity: Option<SweepData>,
 }
 
-fn extract_data(radials: &Vec<Message31>, data_type: &str, az_count: usize, range_count: usize) -> Option<SweepData> {
+fn extract_data(
+    radials: &Vec<Message31>,
+    data_type: &str,
+    az_count: usize,
+    range_count: usize,
+) -> Option<SweepData> {
     if !validate_sweep(radials, data_type) {
         return None;
     }
@@ -100,7 +105,7 @@ fn extract_range_info(radial: &Message31, data_type: &str) -> (f32, f32, i32) {
     let range_first = sample_data_moment.data().data_moment_range() as f32 / 1000.0;
     let range_count = sample_data_moment.data().number_data_moment_gates() as i32;
 
-    return (range_first, range_step, range_count)
+    return (range_first, range_step, range_count);
 }
 
 impl Sweep {
@@ -162,6 +167,6 @@ impl Sweep {
             "ref" => self.reflectivity.is_some(),
             "vel" => self.velocity.is_some(),
             _ => false,
-        }
+        };
     }
 }
