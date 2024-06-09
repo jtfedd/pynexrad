@@ -95,7 +95,7 @@ impl<'a> FloodFiller for SearchingFiller<'a> {
     fn wrap_around(&self) -> bool {
         true
     }
-    
+
     fn should_fill(&self, radial: usize, gate: usize) -> bool {
         self.flags[radial][gate] == 0 && !self.vel.get_mask(radial, gate)
     }

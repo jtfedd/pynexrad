@@ -36,7 +36,7 @@ pub(crate) fn flood_fill(radial: usize, gate: usize, filler: &mut impl FloodFill
                 deq.push_back((r - 1, g));
             }
             if r < filler.radial_max() - 1 {
-                deq.push_back((r+1, g));
+                deq.push_back((r + 1, g));
             }
         }
         if g > 0 {

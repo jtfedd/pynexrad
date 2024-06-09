@@ -1,3 +1,4 @@
+use crate::dealias_region::find_edges::find_edges;
 use crate::dealias_region::find_regions::find_regions;
 use crate::dealias_region::interval_limits::find_interval_limits;
 use crate::dealias_region::region_sizes::region_sizes;
@@ -23,5 +24,12 @@ pub(crate) fn dealias_region_based(
         }
 
         let (num_masked_gates, region_sizes) = region_sizes(&labels, feature_count);
+        let (indices, edge_count, velos) = find_edges(
+            labels,
+            num_masked_gates,
+            vel,
+            skip_between_rays,
+            skip_along_ray,
+        );
     }
 }

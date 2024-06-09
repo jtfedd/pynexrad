@@ -36,7 +36,7 @@ pub(crate) fn find_interval_limits(
 
     let mut result = vec![start];
     for i in 0..interval_count {
-        result.push(start + ((i+1) as f32 * interval_size));
+        result.push(start + ((i + 1) as f32 * interval_size));
     }
 
     return result;
