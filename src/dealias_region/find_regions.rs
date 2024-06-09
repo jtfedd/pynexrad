@@ -8,7 +8,7 @@ pub(crate) fn find_regions(vel: &mut SweepData, limits: Vec<f32>) -> (Vec<Vec<i3
 
     for radial in 0..vel.radials {
         for gate in 0..vel.gates {
-            if vel.get_mask(radial, gate) {
+            if vel.get_mask(radial, gate) || label[radial][gate] != 0 {
                 continue;
             }
 
@@ -70,7 +70,7 @@ impl<'a> RegionFiller<'a> {
 
 impl<'a> FloodFiller for RegionFiller<'a> {
     fn should_fill(&self, radial: usize, gate: usize) -> bool {
-        if self.labels[radial][gate] != 0 || !self.vel.get_mask(radial, gate) {
+        if self.labels[radial][gate] != 0 || self.vel.get_mask(radial, gate) {
             return false;
         }
 
