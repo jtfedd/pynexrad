@@ -1,7 +1,7 @@
-use crate::{
-    flood_fill::{flood_fill::flood_fill, flood_filler::FloodFiller},
-    model::{sweep_data::SweepData, volume::Volume},
-};
+use crate::flood_fill::flood_fill::flood_fill;
+use crate::flood_fill::flood_filler::FloodFiller;
+use crate::model::sweep_data::SweepData;
+use crate::model::volume::Volume;
 
 // Removes all isolated groups of velocity data which have
 // a total number of gates less than the threshold

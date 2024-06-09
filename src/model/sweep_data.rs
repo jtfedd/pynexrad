@@ -35,4 +35,40 @@ impl SweepData {
     pub(crate) fn get_mask(&self, radial: usize, gate: usize) -> bool {
         return self.mask[radial][gate];
     }
+
+    pub(crate) fn min(&self) -> (f32, bool) {
+        let mut min = f32::INFINITY;
+        let mut has_value = false;
+
+        for r in 0..self.radials {
+            for g in 0..self.gates {
+                if self.mask[r][g] {
+                    continue;
+                }
+
+                has_value = true;
+                min = f32::min(min, self.data[r][g]);
+            }
+        }
+
+        return (min, has_value);
+    }
+
+    pub(crate) fn max(&self) -> (f32, bool) {
+        let mut max = f32::NEG_INFINITY;
+        let mut has_value = false;
+
+        for r in 0..self.radials {
+            for g in 0..self.gates {
+                if self.mask[r][g] {
+                    continue;
+                }
+
+                has_value = true;
+                max = f32::max(max, self.data[r][g]);
+            }
+        }
+
+        return (max, has_value);
+    }
 }
