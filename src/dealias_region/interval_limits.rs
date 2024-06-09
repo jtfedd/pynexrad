@@ -27,7 +27,7 @@ pub(crate) fn find_interval_limits(
             "Velocities outside of nyquist interval: {}, {}",
             nyquist, min_vel
         );
-        add_end = f32::ceil(-(max_vel - nyquist) / interval_size) as i32;
+        add_end = f32::ceil(-(min_vel + nyquist) / interval_size) as i32;
     }
 
     // Start of the first interval
@@ -36,7 +36,7 @@ pub(crate) fn find_interval_limits(
 
     let mut result = vec![start];
     for i in 0..interval_count {
-        result.push(start + (i as f32 * interval_size));
+        result.push(start + ((i+1) as f32 * interval_size));
     }
 
     return result;
