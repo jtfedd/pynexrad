@@ -18,18 +18,27 @@ pub(crate) fn flood_fill(radial: usize, gate: usize, filler: &mut impl FloodFill
         filler.fill(r, g);
         count += 1;
 
-        let mut prev_radial = filler.radial_max() - 1;
-        if r > 0 {
-            prev_radial = r - 1;
-        }
+        if filler.wrap_around() {
+            let mut prev_radial = filler.radial_max() - 1;
+            if r > 0 {
+                prev_radial = r - 1;
+            }
 
-        let mut next_radial = 0;
-        if r < filler.radial_max() - 1 {
-            next_radial = r + 1;
-        }
+            let mut next_radial = 0;
+            if r < filler.radial_max() - 1 {
+                next_radial = r + 1;
+            }
 
-        deq.push_back((prev_radial, g));
-        deq.push_back((next_radial, g));
+            deq.push_back((prev_radial, g));
+            deq.push_back((next_radial, g));
+        } else {
+            if r > 0 {
+                deq.push_back((r - 1, g));
+            }
+            if r < filler.radial_max() - 1 {
+                deq.push_back((r+1, g));
+            }
+        }
         if g > 0 {
             deq.push_back((r, g - 1));
         }

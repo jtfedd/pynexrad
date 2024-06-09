@@ -54,6 +54,10 @@ impl<'a> ResultFiller<'a> {
 }
 
 impl<'a> FloodFiller for ResultFiller<'a> {
+    fn wrap_around(&self) -> bool {
+        true
+    }
+
     fn should_fill(&self, radial: usize, gate: usize) -> bool {
         self.flags[radial][gate] == 2
     }
@@ -88,6 +92,10 @@ impl<'a> SearchingFiller<'a> {
 }
 
 impl<'a> FloodFiller for SearchingFiller<'a> {
+    fn wrap_around(&self) -> bool {
+        true
+    }
+    
     fn should_fill(&self, radial: usize, gate: usize) -> bool {
         self.flags[radial][gate] == 0 && !self.vel.get_mask(radial, gate)
     }

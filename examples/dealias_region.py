@@ -4,8 +4,6 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import pyart
 
-warnings.filterwarnings("ignore")
-
 RADAR_FILE = "examples/KDMX20240521_215236_V06"
 
 print("Loading...")
