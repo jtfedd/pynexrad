@@ -23,13 +23,16 @@ pub(crate) fn dealias_region_based(
             continue;
         }
 
-        let (num_masked_gates, region_sizes) = region_sizes(&labels, feature_count);
+        let region_sizes = region_sizes(&labels, feature_count);
         let (indices, edge_count, velos) = find_edges(
             labels,
-            num_masked_gates,
             vel,
             skip_between_rays,
             skip_along_ray,
         );
+
+        if edge_count.is_empty() {
+            continue;
+        }
     }
 }

@@ -32,6 +32,14 @@ impl SweepData {
         return self.data[radial][gate];
     }
 
+    pub(crate) fn get_value_with_fallback(&self, radial: usize, gate: usize, fallback: f32) -> f32 {
+        if self.mask[radial][gate] {
+            return fallback;
+        }
+
+        return self.data[radial][gate];
+    }
+
     pub(crate) fn get_mask(&self, radial: usize, gate: usize) -> bool {
         return self.mask[radial][gate];
     }
