@@ -6,11 +6,16 @@ pub(crate) fn find_edges(
     skip_between_rays: i32,
     skip_along_ray: i32,
 ) -> ((Vec<i32>, Vec<i32>), Vec<i32>, (Vec<f32>, Vec<f32>)) {
-    let ((index1, index2), (vel1, vel2)) = edge_finder(labels, data, skip_between_rays, skip_along_ray);
+    let ((index1, index2), (vel1, vel2)) =
+        edge_finder(labels, data, skip_between_rays, skip_along_ray);
 
     // Return early if edges were not found
     if vel1.is_empty() {
-        return (([].to_vec(), [].to_vec()), [].to_vec(), ([].to_vec(), [].to_vec()));
+        return (
+            ([].to_vec(), [].to_vec()),
+            [].to_vec(),
+            ([].to_vec(), [].to_vec()),
+        );
     }
 
     // Deduplicate edges and sum values of duplicate edges
@@ -39,7 +44,7 @@ pub(crate) fn find_edges(
         let i1 = index1[o];
         let i2 = index2[o];
 
-        if index1_result[unique-1] == i1 && index2_result[unique-1] == i2 {
+        if index1_result[unique - 1] == i1 && index2_result[unique - 1] == i2 {
             // This is a duplicate of the previous one
             // Add to the previous one
 
@@ -57,7 +62,11 @@ pub(crate) fn find_edges(
         }
     }
 
-    return ((index1_result, index2_result), count, (vel1_result, vel2_result));
+    return (
+        (index1_result, index2_result),
+        count,
+        (vel1_result, vel2_result),
+    );
 }
 
 fn edge_finder(
@@ -90,7 +99,8 @@ fn edge_finder(
                 }
 
                 let mut neighbor = labels[x_check as usize][y_index as usize];
-                let mut nvel = data.get_value_with_fallback(x_check as usize, y_index as usize, 0.0);
+                let mut nvel =
+                    data.get_value_with_fallback(x_check as usize, y_index as usize, 0.0);
 
                 // If the left side gate is masked, keep looking to the left
                 // until we find a valid gate or reach the maximum gap size
@@ -102,7 +112,8 @@ fn edge_finder(
                         }
 
                         neighbor = labels[x_check as usize][y_index as usize];
-                        nvel = data.get_value_with_fallback(x_check as usize, y_index as usize, 0.0);
+                        nvel =
+                            data.get_value_with_fallback(x_check as usize, y_index as usize, 0.0);
                         if neighbor != 0 {
                             break;
                         }
@@ -115,12 +126,13 @@ fn edge_finder(
             // right
             {
                 let mut x_check = x_index + 1;
-                if x_check == right+1 {
+                if x_check == right + 1 {
                     x_check = 0;
                 }
 
                 let mut neighbor = labels[x_check as usize][y_index as usize];
-                let mut nvel = data.get_value_with_fallback(x_check as usize, y_index as usize, 0.0);
+                let mut nvel =
+                    data.get_value_with_fallback(x_check as usize, y_index as usize, 0.0);
 
                 // If the right side gate is masked, keep looking to the right
                 // until we find a valid gate or reach the maximum gap size
@@ -132,7 +144,8 @@ fn edge_finder(
                         }
 
                         neighbor = labels[x_check as usize][y_index as usize];
-                        nvel = data.get_value_with_fallback(x_check as usize, y_index as usize, 0.0);
+                        nvel =
+                            data.get_value_with_fallback(x_check as usize, y_index as usize, 0.0);
                         if neighbor != 0 {
                             break;
                         }
@@ -147,7 +160,8 @@ fn edge_finder(
                 let mut y_check = y_index - 1;
                 if y_check != -1 {
                     let mut neighbor = labels[x_index as usize][y_check as usize];
-                    let mut nvel = data.get_value_with_fallback(x_index as usize, y_check as usize, 0.0);
+                    let mut nvel =
+                        data.get_value_with_fallback(x_index as usize, y_check as usize, 0.0);
 
                     // If the top side gate is masked, keep looking up
                     // until we find a valid gate or reach the maximum gap size
@@ -159,7 +173,11 @@ fn edge_finder(
                             }
 
                             neighbor = labels[x_index as usize][y_check as usize];
-                            nvel = data.get_value_with_fallback(x_index as usize, y_check as usize, 0.0);
+                            nvel = data.get_value_with_fallback(
+                                x_index as usize,
+                                y_check as usize,
+                                0.0,
+                            );
 
                             if neighbor != 0 {
                                 break;
@@ -176,7 +194,8 @@ fn edge_finder(
                 let mut y_check = y_index + 1;
                 if y_check != bottom + 1 {
                     let mut neighbor = labels[x_index as usize][y_check as usize];
-                    let mut nvel = data.get_value_with_fallback(x_index as usize, y_check as usize, 0.0);
+                    let mut nvel =
+                        data.get_value_with_fallback(x_index as usize, y_check as usize, 0.0);
 
                     // If the top side gate is masked, keep looking up
                     // until we find a valid gate or reach the maximum gap size
@@ -188,7 +207,11 @@ fn edge_finder(
                             }
 
                             neighbor = labels[x_index as usize][y_check as usize];
-                            nvel = data.get_value_with_fallback(x_index as usize, y_check as usize, 0.0);
+                            nvel = data.get_value_with_fallback(
+                                x_index as usize,
+                                y_check as usize,
+                                0.0,
+                            );
 
                             if neighbor != 0 {
                                 break;
@@ -202,7 +225,10 @@ fn edge_finder(
         }
     }
 
-    return ((collector.label, collector.neighbor), (collector.l_vel, collector.n_vel))
+    return (
+        (collector.label, collector.neighbor),
+        (collector.l_vel, collector.n_vel),
+    );
 }
 
 struct EdgeCollector {
