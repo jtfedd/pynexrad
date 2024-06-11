@@ -1,7 +1,9 @@
+use crate::dealias_region::edge_tracker::EdgeTracker;
 use crate::dealias_region::find_edges::find_edges;
 use crate::dealias_region::find_regions::find_regions;
 use crate::dealias_region::interval_limits::find_interval_limits;
 use crate::dealias_region::region_sizes::region_sizes;
+use crate::dealias_region::region_tracker::RegionTracker;
 use crate::model::volume::Volume;
 
 pub(crate) fn dealias_region_based(
@@ -30,5 +32,14 @@ pub(crate) fn dealias_region_based(
         if edge_count.is_empty() {
             continue;
         }
+
+        let region_tracker = RegionTracker::new(region_sizes);
+        let edge_tracker = EdgeTracker::new(
+            indices,
+            edge_count,
+            velos,
+            sweep.nyquist_vel * 2.0,
+            feature_count + 1,
+        );
     }
 }

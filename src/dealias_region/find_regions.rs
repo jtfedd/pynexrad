@@ -69,10 +69,6 @@ impl<'a> RegionFiller<'a> {
 }
 
 impl<'a> FloodFiller for RegionFiller<'a> {
-    fn wrap_around(&self) -> bool {
-        false
-    }
-
     fn should_fill(&self, radial: usize, gate: usize) -> bool {
         if self.labels[radial][gate] != 0 || self.vel.get_mask(radial, gate) {
             return false;
@@ -85,7 +81,6 @@ impl<'a> FloodFiller for RegionFiller<'a> {
 
     fn fill(&mut self, radial: usize, gate: usize) {
         self.labels[radial][gate] = self.label;
-        self.vel.set_value(self.l_min, radial, gate);
     }
 
     fn radial_max(&self) -> usize {
