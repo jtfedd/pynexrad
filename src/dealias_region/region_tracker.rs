@@ -1,11 +1,11 @@
 pub(crate) struct RegionTracker {
     node_size: Vec<i32>,
     regions_in_node: Vec<Vec<i32>>,
-    unwrap_number: Vec<i32>,
+    pub(crate) unwrap_number: Vec<i32>,
 }
 
 impl RegionTracker {
-    pub(crate) fn new(region_sizes: Vec<i32>) -> Self {
+    pub(crate) fn new(region_sizes: &Vec<i32>) -> Self {
         let n_regions = region_sizes.len() + 1;
 
         let mut node_size = vec![0; n_regions];
@@ -50,5 +50,15 @@ impl RegionTracker {
         for i in 0..self.regions_in_node[node as usize].len() {
             self.unwrap_number[self.regions_in_node[node as usize][i] as usize] += nwrap;
         }
+    }
+
+    pub(crate) fn apply_offset(&mut self, offset: i32) {
+        for i in 0..self.unwrap_number.len() {
+            self.unwrap_number[i] -= offset;
+        }
+    }
+
+    pub(crate) fn get_node_size(&self, node: i32) -> i32 {
+        return self.node_size[node as usize];
     }
 }

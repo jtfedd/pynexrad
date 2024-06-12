@@ -175,4 +175,40 @@ impl EdgeTracker {
         // swap sums
         self.sum_diff[edge] = -1.0 * self.sum_diff[edge]
     }
+
+    pub(crate) fn unwrap_node(&mut self, node: i32, nwrap: i32) {
+        if nwrap == 0 {
+            return;
+        }
+
+        for i in 0..self.edges_in_node[node as usize].len() {
+            let edge = self.edges_in_node[node as usize][i] as usize;
+            let weight = self.weight[edge];
+            if node == self.node_alpha[edge] {
+                self.sum_diff[edge] += (weight * nwrap) as f32;
+            } else {
+                assert_eq!(self.node_beta[edge], node);
+                self.sum_diff[edge] += ((-weight) * nwrap) as f32;
+            }
+        }
+    }
+
+    pub(crate) fn pop_edge(&self) -> (bool, (i32, i32, i32, f32, i32)) {
+        let mut edge_num = 0;
+        let mut max_weight = self.weight[0];
+
+        for i in 0..self.weight.len() {
+            if self.weight[i] > max_weight {
+                edge_num = i as i32;
+                max_weight = self.weight[i];
+            }
+        }
+
+        let node1 = self.node_alpha[edge_num as usize];
+        let node2 = self.node_beta[edge_num as usize];
+        let weight = self.weight[edge_num as usize];
+        let diff = self.sum_diff[edge_num as usize] / (weight as f32);
+
+        return (weight < 0, (node1, node2, weight, diff, edge_num));
+    }
 }

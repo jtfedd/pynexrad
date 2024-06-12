@@ -1,7 +1,7 @@
 use crate::model::sweep_data::SweepData;
 
 pub(crate) fn find_edges(
-    labels: Vec<Vec<i32>>,
+    labels: &Vec<Vec<i32>>,
     data: &SweepData,
     skip_between_rays: i32,
     skip_along_ray: i32,
@@ -70,7 +70,7 @@ pub(crate) fn find_edges(
 }
 
 fn edge_finder(
-    labels: Vec<Vec<i32>>,
+    labels: &Vec<Vec<i32>>,
     data: &SweepData,
     skip_between_rays: i32,
     skip_along_ray: i32,

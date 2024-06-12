@@ -14,19 +14,21 @@ pub(crate) fn find_interval_limits(
 
     let (max_vel, has_value) = vel.max();
     if has_value && max_vel > nyquist {
-        println!(
-            "Velocities outside of nyquist interval: {}, {}",
-            nyquist, max_vel
-        );
+        // Velocities outside of nyquist interval
+        // println!(
+        //     "Velocities outside of nyquist interval: {}, {}",
+        //     nyquist, max_vel
+        // );
         add_start = f32::ceil((max_vel - nyquist) / interval_size) as i32;
     }
 
     let (min_vel, has_value) = vel.min();
     if has_value && min_vel < -nyquist {
-        println!(
-            "Velocities outside of nyquist interval: {}, {}",
-            nyquist, min_vel
-        );
+        // Velocities outside of nyquist interval
+        // println!(
+        //     "Velocities outside of nyquist interval: {}, {}",
+        //     nyquist, min_vel
+        // );
         add_end = f32::ceil(-(min_vel + nyquist) / interval_size) as i32;
     }
 
