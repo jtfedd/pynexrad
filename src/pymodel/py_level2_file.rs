@@ -1,4 +1,5 @@
-use crate::{model::volume::Volume, pymodel::py_scan::PyScan};
+use crate::model::volume::Volume;
+use crate::pymodel::py_scan::PyScan;
 use pyo3::prelude::*;
 
 #[derive(Clone)]

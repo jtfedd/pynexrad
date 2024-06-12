@@ -1,6 +1,7 @@
 use std::f32::consts::PI;
 
-use crate::{model::volume::Volume, pymodel::py_sweep::PySweep};
+use crate::model::volume::Volume;
+use crate::pymodel::py_sweep::PySweep;
 use pyo3::prelude::*;
 
 #[derive(Clone)]
