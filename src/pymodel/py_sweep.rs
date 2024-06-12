@@ -45,7 +45,7 @@ impl PySweep {
 
         let (min, max) = match data_type {
             "ref" => (-20.0, 80.0),
-            "vel" => (-60.0, 60.0),
+            "vel" => (-100.0, 100.0),
             _ => panic!("Unexpected product: {}", data_type),
         };
 
