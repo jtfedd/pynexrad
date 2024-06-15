@@ -23,7 +23,7 @@ pub struct PySweep {
     pub range_count: i32,
 
     #[pyo3(get)]
-    pub data: Vec<f32>,
+    pub data: Vec<u8>,
 }
 
 impl PySweep {
@@ -41,7 +41,7 @@ impl PySweep {
     }
 
     pub(crate) fn new(sweep: &Sweep, data_type: &str) -> Self {
-        let mut data: Vec<f32> = Vec::new();
+        let mut data: Vec<u8> = Vec::new();
 
         let (min, max) = match data_type {
             "ref" => (-20.0, 80.0),
@@ -55,33 +55,79 @@ impl PySweep {
             _ => panic!("Unexpected product {}", data_type),
         };
 
+        // Find the first gate with data somewhere in one of the radials
+        let mut first_gate = 0;
+        let mut found_data = false;
+        for gate in 0..product.gates {
+            for radial in 0..product.radials {
+                if !product.get_mask(radial, gate) {
+                    // We have data!
+                    found_data = true;
+                    break;
+                }
+            }
+            if found_data {
+                break;
+            }
+            // We didn't find data in any radial for this gate
+            // The first gate with data must be at least the next one
+            first_gate = gate as i32 + 1;
+        }
+
+        // Find the last gate with data somewhere in one of the radials
+        let mut last_gate = product.gates as i32 - 1;
+        found_data = false;
+        for gate in (0..product.gates).rev() {
+            for radial in 0..product.radials {
+                if !product.get_mask(radial, gate) {
+                    // We have data!
+                    found_data = true;
+                    break;
+                }
+            }
+            if found_data {
+                break;
+            }
+            // We didn't find data in any radial for this gate
+            // The last gate with data must be at least the one before
+            last_gate = gate as i32 - 1;
+        }
+
+        if last_gate < first_gate {
+            return PySweep::empty(sweep.elevation);
+        }
+
         for radial in 0..product.radials {
-            data.push(-1.0);
-            for gate in 0..product.gates {
+            data.push(0);
+            for gate in (first_gate as usize)..((last_gate + 1) as usize) {
                 if product.get_mask(radial, gate) {
-                    data.push(-1.0);
+                    data.push(0);
                 } else {
                     let mut value = product.get_value(radial, gate);
 
                     value -= min;
                     value /= max - min;
-
                     value = f32::max(f32::min(value, 1.0), 0.0);
+                    value *= 254.0;
+                    let u_value = value.round() as u8;
 
-                    data.push(value);
+                    data.push(u_value + 1);
                 }
             }
-            data.push(-1.0);
+            data.push(0);
         }
+
+        let range_first = sweep.range_first + (first_gate as f32 * sweep.range_step);
+        let range_count = last_gate - first_gate + 1;
 
         Self {
             elevation: sweep.elevation,
             az_first: sweep.az_first,
             az_step: sweep.az_step,
             az_count: sweep.az_count,
-            range_first: sweep.range_first - sweep.range_step,
+            range_first: range_first - sweep.range_step,
             range_step: sweep.range_step,
-            range_count: sweep.range_count + 2,
+            range_count: range_count + 2,
             data,
         }
     }
