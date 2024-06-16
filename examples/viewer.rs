@@ -211,7 +211,8 @@ fn view(app: &App, model: &Model, frame: Frame) {
                 || boundary.contains(point4)
             {
                 let scaled_value = (value - 1) as f32 / 254.0;
-                let mut color_index = ((1.0 - scaled_value) * (colors.height() as f32)).floor() as u32;
+                let mut color_index =
+                    ((1.0 - scaled_value) * (colors.height() as f32)).floor() as u32;
                 if color_index == colors.height() {
                     color_index = colors.height() - 1;
                 }
