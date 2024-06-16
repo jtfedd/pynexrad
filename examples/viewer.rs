@@ -180,7 +180,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
         for j in 0..data.range_count {
             let value = data.data[((i * data.range_count) + j) as usize];
 
-            if value < 0.0 {
+            if value == 0 {
                 continue;
             }
 
@@ -210,7 +210,9 @@ fn view(app: &App, model: &Model, frame: Frame) {
                 || boundary.contains(point3)
                 || boundary.contains(point4)
             {
-                let mut color_index = ((1.0 - value) * (colors.height() as f32)).floor() as u32;
+                let scaled_value = (value - 1) as f32 / 254.0;
+                let mut color_index =
+                    ((1.0 - scaled_value) * (colors.height() as f32)).floor() as u32;
                 if color_index == colors.height() {
                     color_index = colors.height() - 1;
                 }
