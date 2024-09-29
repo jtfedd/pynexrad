@@ -14,8 +14,7 @@ use crate::pymodel::py_sweep::PySweep;
 use crate::util::create_date;
 
 /// Downloads and decodes a nexrad file
-#[pyfunction]
-fn download_nexrad_file(
+fn download_nexrad_file_impl(
     site: String,
     year: i32,
     month: u32,
@@ -45,8 +44,7 @@ fn download_nexrad_file(
 }
 
 /// Lists records from a particular site and date
-#[pyfunction]
-fn list_records(site: String, year: i32, month: u32, day: u32) -> Vec<String> {
+fn list_records_impl(site: String, year: i32, month: u32, day: u32) -> Vec<String> {
     let rt = tokio::runtime::Runtime::new().unwrap();
 
     let files = rt
@@ -61,7 +59,35 @@ fn list_records(site: String, year: i32, month: u32, day: u32) -> Vec<String> {
 /// A Python module implemented in Rust.
 #[pymodule]
 fn pynexrad(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(download_nexrad_file, m)?)?;
+    #[pyfn(m)]
+    fn download_nexrad_file(
+        py: Python,
+        site: String,
+        year: i32,
+        month: u32,
+        day: u32,
+        identifier: String,
+    ) -> PyResult<PyLevel2File> {
+        let result =
+            py.allow_threads(move || download_nexrad_file_impl(site, year, month, day, identifier));
+
+        Ok(result)
+    }
+
+    #[pyfn(m)]
+    fn list_records(
+        py: Python,
+        site: String,
+        year: i32,
+        month: u32,
+        day: u32,
+    ) -> PyResult<Vec<String>> {
+        let result = py.allow_threads(move || list_records_impl(site, year, month, day));
+
+        Ok(result)
+    }
+
+    // m.add_function(wrap_pyfunction!(download_nexrad_file, m)?)?;
     m.add_function(wrap_pyfunction!(list_records, m)?)?;
     m.add_class::<PyLevel2File>()?;
     m.add_class::<PyScan>()?;
