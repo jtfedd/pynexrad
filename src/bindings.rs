@@ -68,15 +68,16 @@ fn pynexrad(_py: Python, m: &PyModule) -> PyResult<()> {
         day: u32,
         identifier: String,
     ) -> PyResult<PyLevel2File> {
-        let result = py.allow_threads(move || download_nexrad_file_impl(site, year, month, day, identifier));
-    
+        let result =
+            py.allow_threads(move || download_nexrad_file_impl(site, year, month, day, identifier));
+
         Ok(result)
     }
 
     #[pyfn(m)]
     fn list_records(
         py: Python,
-        site: String, 
+        site: String,
         year: i32,
         month: u32,
         day: u32,
@@ -85,7 +86,7 @@ fn pynexrad(_py: Python, m: &PyModule) -> PyResult<()> {
 
         Ok(result)
     }
-    
+
     // m.add_function(wrap_pyfunction!(download_nexrad_file, m)?)?;
     m.add_function(wrap_pyfunction!(list_records, m)?)?;
     m.add_class::<PyLevel2File>()?;
