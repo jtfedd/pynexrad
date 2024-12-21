@@ -8,7 +8,9 @@ resolver = "2"
 pyo3 = "0.19.0"
 chrono = "0.4"
 tokio = { version = "1", features = ["rt-multi-thread"] }
-nexrad = { version = "0.0.3", features = ["download"] }
+nexrad-data = { version = "0.1.0-rc1" }
+nexrad-model = { version = "0.1.0-rc1" }
+nexrad-decode = { version = "0.1.0-rc1" }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
