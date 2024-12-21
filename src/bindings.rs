@@ -8,16 +8,11 @@ use crate::pymodel::py_sweep::PySweep;
 use crate::util::create_date;
 
 /// Downloads and decodes a nexrad file
-fn download_nexrad_file_impl(
-    identifier: String,
-) -> PyLevel2File {
+fn download_nexrad_file_impl(identifier: String) -> PyLevel2File {
     let rt = tokio::runtime::Runtime::new().unwrap();
 
     let f = rt
-        .block_on(async {
-            download_file(Identifier::new(identifier))
-            .await
-        })
+        .block_on(async { download_file(Identifier::new(identifier)).await })
         .expect("Should download without error");
 
     convert_nexrad_file(&f)
@@ -40,12 +35,8 @@ fn list_records_impl(site: String, year: i32, month: u32, day: u32) -> Vec<Strin
 #[pymodule]
 fn pynexrad(_py: Python, m: &PyModule) -> PyResult<()> {
     #[pyfn(m)]
-    fn download_nexrad_file(
-        py: Python,
-        identifier: String,
-    ) -> PyResult<PyLevel2File> {
-        let result =
-            py.allow_threads(move || download_nexrad_file_impl(identifier));
+    fn download_nexrad_file(py: Python, identifier: String) -> PyResult<PyLevel2File> {
+        let result = py.allow_threads(move || download_nexrad_file_impl(identifier));
 
         Ok(result)
     }

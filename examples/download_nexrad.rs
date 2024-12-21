@@ -11,8 +11,7 @@ async fn main() -> Result<(), &'static str> {
     println!("Data file size (bytes): {}", downloaded_file.data().len());
 
     let mut file = std::fs::File::create(name).expect("create file");
-    file.write_all(downloaded_file.data())
-        .expect("write file");
+    file.write_all(downloaded_file.data()).expect("write file");
 
     return Ok(());
 }

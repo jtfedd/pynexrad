@@ -34,7 +34,12 @@ fn extract_data(
     let mut data = SweepData::new(az_count as usize, range_count as usize);
 
     let mut sorted_radials: Vec<_> = radials.iter().collect();
-    sorted_radials.sort_by(|a, b| a.header.azimuth_angle.partial_cmp(&b.header.azimuth_angle).unwrap());
+    sorted_radials.sort_by(|a, b| {
+        a.header
+            .azimuth_angle
+            .partial_cmp(&b.header.azimuth_angle)
+            .unwrap()
+    });
     for (radial_index, radial) in sorted_radials.iter().enumerate() {
         let data_moment = match data_type {
             "ref" => radial.reflectivity_data_block.as_ref().unwrap(),
@@ -46,8 +51,8 @@ fn extract_data(
             match gate_value {
                 ScaledMomentValue::Value(value) => {
                     data.set_value(*value, radial_index, gate_index);
-                },
-                _ => {},
+                }
+                _ => {}
             }
         }
     }
@@ -56,7 +61,11 @@ fn extract_data(
 }
 
 fn extract_nyquist_vel(radials: &Vec<Box<Message>>) -> f32 {
-    let nyquist_vel = radials[0].radial_data_block.as_ref().unwrap().nyquist_velocity;
+    let nyquist_vel = radials[0]
+        .radial_data_block
+        .as_ref()
+        .unwrap()
+        .nyquist_velocity;
 
     for radial in radials {
         if nyquist_vel != radial.radial_data_block.as_ref().unwrap().nyquist_velocity {
@@ -89,10 +98,7 @@ fn extract_range_info(radial: &Message, data_type: &str) -> (f32, f32, i32) {
         sample_data_moment = radial.velocity_data_block.as_ref().unwrap();
     }
 
-    let range_step = sample_data_moment
-        .header
-        .data_moment_range_sample_interval as f32
-        / 1000.0;
+    let range_step = sample_data_moment.header.data_moment_range_sample_interval as f32 / 1000.0;
     let range_first = sample_data_moment.header.data_moment_range as f32 / 1000.0;
     let range_count = sample_data_moment.header.number_of_data_moment_gates as i32;
 
@@ -113,7 +119,7 @@ impl Sweep {
         let rad_hdr = &radials[0].header;
         let az_first = (rad_hdr.azimuth_indexing_mode as f32 / 100.0) * PI / 180.0;
         let az_count = radials.len() as i32;
-        let az_step = if rad_hdr.azimuth_resolution_spacing== 1 {
+        let az_step = if rad_hdr.azimuth_resolution_spacing == 1 {
             0.5 * PI / 180.0
         } else {
             PI / 180.0

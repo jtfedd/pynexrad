@@ -14,7 +14,9 @@ impl Volume {
 
         for mut record in file.records() {
             if record.compressed() {
-                record = record.decompress().expect("Should decompress record successfully");
+                record = record
+                    .decompress()
+                    .expect("Should decompress record successfully");
             }
 
             let messages = record.messages().expect("Has messages");
@@ -28,7 +30,7 @@ impl Volume {
             }
         }
 
-        let mut sweeps:Vec<Vec<Box<digital_radar_data::Message>>> = Vec::new();
+        let mut sweeps: Vec<Vec<Box<digital_radar_data::Message>>> = Vec::new();
         for _ in 0..max_el_number {
             sweeps.push(Vec::new());
         }
