@@ -1,6 +1,6 @@
 use image::{DynamicImage, GenericImageView, ImageFormat};
 use nannou::prelude::*;
-use nexrad::{decode::decode_file, decompress::decompress_file, file::is_compressed};
+use nexrad_data::volume;
 use pynexrad::{convert::convert_nexrad_file, pymodel::py_level2_file::PyLevel2File};
 use std::fs::File;
 use std::io::BufReader;
@@ -24,18 +24,11 @@ struct Model {
 fn model(app: &App) -> Model {
     println!("Loading file");
     let file_name = "examples/KDMX20240521_215236_V06";
-    let mut file = std::fs::read(file_name).expect("file exists");
-
-    println!("Decompressing file");
-    if is_compressed(file.as_slice()) {
-        file = decompress_file(file.as_slice()).expect("decompresses");
-    }
-
-    println!("Decoding file");
-    let radar = decode_file(&file).expect("is valid");
+    let bytes = std::fs::read(file_name).expect("file exists");
+    let file = volume::File::new(bytes);
 
     println!("Converting file");
-    let pyradar = convert_nexrad_file(&radar);
+    let pyradar = convert_nexrad_file(&file);
 
     let ref_scale = image::load(
         BufReader::new(File::open("examples/reflectivity_scale.png").expect("file exists")),
