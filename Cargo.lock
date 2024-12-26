@@ -2066,8 +2066,6 @@ checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
 [[package]]
 name = "nexrad-data"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2076766b1fdec1397da0bd8e68c36e8d8c7543990f7bdff5247cc1ebf73035d"
 dependencies = [
  "bincode",
  "bzip2",
@@ -2086,8 +2084,6 @@ dependencies = [
 [[package]]
 name = "nexrad-decode"
 version = "0.1.0-rc3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ae323903685b2eaa9fe9242e35b64f7ff893062bb8ca846a82b7be6da903a78"
 dependencies = [
  "bincode",
  "chrono",
@@ -2101,8 +2097,6 @@ dependencies = [
 [[package]]
 name = "nexrad-model"
 version = "0.1.0-rc3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c744705311a58da3d344025e009fea6f6243ee9cf40edd1bf8b2e0943ea45e24"
 dependencies = [
  "thiserror",
 ]
