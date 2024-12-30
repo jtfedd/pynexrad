@@ -2,11 +2,9 @@ use std::cmp::Ordering;
 
 use chrono::{DateTime, Utc};
 use nexrad_data::volume;
-use nexrad_decode::messages::{digital_radar_data, Message};
+use nexrad_decode::messages::{Message, digital_radar_data, volume_coverage_pattern};
 
 fn main() {
-    // env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
-
     println!("Loading file");
     let file_name = "examples/KDMX20240521_215236_V06";
     let bytes = std::fs::read(file_name).expect("file exists");
@@ -14,6 +12,7 @@ fn main() {
 
     // Collect all of the radials from the file
     let mut radials: Vec<Box<digital_radar_data::Message>> = Vec::new();
+    let mut vcp: Option<Box<volume_coverage_pattern::Message>> = None;
     let mut max_el_number: u8 = 0;
 
     let records = file.records();
@@ -27,15 +26,17 @@ fn main() {
 
         let messages = record.messages().expect("Has messages");
         for message in messages {
-            if let Message::DigitalRadarData(radar_data_message) = message.message.clone() {
-                if radar_data_message.header.elevation_number > max_el_number {
-                    max_el_number = radar_data_message.header.elevation_number;
+            match message.message {
+                Message::DigitalRadarData(radar_data_message) => {
+                    if radar_data_message.header.elevation_number > max_el_number {
+                        max_el_number = radar_data_message.header.elevation_number;
+                    }
+                    radials.push(radar_data_message);
+                },
+                Message::VolumeCoveragePattern(m) => {
+                    vcp = Some(m)
                 }
-                radials.push(radar_data_message);
-            }
-
-            if let Message::VolumeCoveragePattern(vcp) = message.message.clone() {
-                println!("{:#?}", vcp)
+                _ => {}
             }
         }
     }
@@ -74,18 +75,14 @@ fn main() {
         avg_el /= sweep.len() as f32;
 
         println!(
-            "{:<2} {:>7.2} {:>7.2} {:>7.2} {} {} {}",
+            "{:<2} {:>7.2} {:>7.2} {:>7.2} {} {:>15} {:?}",
             i,
             min_el,
             max_el,
             avg_el,
-            sweep[0]
-            .header
-            .date_time()
-            .expect("has")
-            .format("%d/%m/%Y %H:%M:%S"),
             max_time.unwrap().format("%d/%m/%Y %H:%M:%S"),
-            max_time.unwrap().timestamp(),
+            format_args!("{:>15}", format!("{:?}", vcp.as_ref().unwrap().elevations[i].channel_configuration())),
+            vcp.as_ref().unwrap().elevations[i].waveform_type(),
         );
     }
 }
