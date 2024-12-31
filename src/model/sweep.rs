@@ -148,7 +148,11 @@ impl Sweep {
         let reflectivity = extract_data(radials, "ref", az_count as usize, range_count as usize);
         let velocity = extract_data(radials, "vel", az_count as usize, range_count as usize);
 
-        let time = radials.iter().map(|r| r.header.date_time().unwrap()).max().unwrap();
+        let time = radials
+            .iter()
+            .map(|r| r.header.date_time().unwrap())
+            .max()
+            .unwrap();
 
         return Self {
             elevation,

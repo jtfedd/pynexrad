@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use chrono::{DateTime, Utc};
 use nexrad_data::volume;
-use nexrad_decode::messages::{Message, digital_radar_data, volume_coverage_pattern};
+use nexrad_decode::messages::{digital_radar_data, volume_coverage_pattern, Message};
 
 fn main() {
     println!("Loading file");
@@ -32,10 +32,8 @@ fn main() {
                         max_el_number = radar_data_message.header.elevation_number;
                     }
                     radials.push(radar_data_message);
-                },
-                Message::VolumeCoveragePattern(m) => {
-                    vcp = Some(m)
                 }
+                Message::VolumeCoveragePattern(m) => vcp = Some(m),
                 _ => {}
             }
         }
@@ -67,7 +65,11 @@ fn main() {
             }
         }
 
-        let max_time = sweep.iter().map(|r| r.header.date_time().unwrap()).max().unwrap();
+        let max_time = sweep
+            .iter()
+            .map(|r| r.header.date_time().unwrap())
+            .max()
+            .unwrap();
 
         avg_el /= sweep.len() as f32;
 
@@ -78,7 +80,13 @@ fn main() {
             max_el,
             avg_el,
             max_time.format("%d/%m/%Y %H:%M:%S"),
-            format_args!("{:>15}", format!("{:?}", vcp.as_ref().unwrap().elevations[i].channel_configuration())),
+            format_args!(
+                "{:>15}",
+                format!(
+                    "{:?}",
+                    vcp.as_ref().unwrap().elevations[i].channel_configuration()
+                )
+            ),
             vcp.as_ref().unwrap().elevations[i].waveform_type(),
         );
     }
