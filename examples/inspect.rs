@@ -41,12 +41,12 @@ fn main() {
         }
     }
 
-    let mut sweeps: Vec<Vec<Box<digital_radar_data::Message>>> = Vec::new();
+    let mut sweeps: Vec<Vec<&Box<digital_radar_data::Message>>> = Vec::new();
     for _ in 0..max_el_number {
         sweeps.push(Vec::new());
     }
 
-    for radial in radials {
+    for radial in &radials {
         sweeps[radial.header.elevation_number as usize - 1].push(radial);
     }
 
@@ -54,7 +54,6 @@ fn main() {
         let mut max_el = 0 as f32;
         let mut min_el = 1000 as f32;
         let mut avg_el = 0 as f32;
-        let mut max_time: Option<DateTime<Utc>> = None;
 
         for radial in sweep {
             avg_el += radial.header.elevation_angle;
@@ -66,11 +65,9 @@ fn main() {
             if radial.header.elevation_angle > max_el {
                 max_el = radial.header.elevation_angle
             }
-
-            if max_time.is_none() || max_time.unwrap().partial_cmp(&radial.header.date_time().unwrap()).unwrap() == Ordering::Less {
-                max_time = Some(radial.header.date_time().unwrap())
-            }
         }
+
+        let max_time = sweep.iter().map(|r| r.header.date_time().unwrap()).max().unwrap();
 
         avg_el /= sweep.len() as f32;
 
@@ -80,7 +77,7 @@ fn main() {
             min_el,
             max_el,
             avg_el,
-            max_time.unwrap().format("%d/%m/%Y %H:%M:%S"),
+            max_time.format("%d/%m/%Y %H:%M:%S"),
             format_args!("{:>15}", format!("{:?}", vcp.as_ref().unwrap().elevations[i].channel_configuration())),
             vcp.as_ref().unwrap().elevations[i].waveform_type(),
         );

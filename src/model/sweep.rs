@@ -1,5 +1,6 @@
 use std::f32::consts::PI;
 
+use chrono::{DateTime, Utc};
 use nexrad_decode::messages::digital_radar_data::{Message, ScaledMomentValue};
 
 use crate::model::sweep_data::SweepData;
@@ -16,6 +17,8 @@ pub struct Sweep {
     pub range_count: i32,
 
     pub nyquist_vel: f32,
+
+    pub time: DateTime<Utc>,
 
     pub reflectivity: Option<SweepData>,
     pub velocity: Option<SweepData>,
@@ -145,6 +148,8 @@ impl Sweep {
         let reflectivity = extract_data(radials, "ref", az_count as usize, range_count as usize);
         let velocity = extract_data(radials, "vel", az_count as usize, range_count as usize);
 
+        let time = radials.iter().map(|r| r.header.date_time().unwrap()).max().unwrap();
+
         return Self {
             elevation,
             az_first,
@@ -154,6 +159,7 @@ impl Sweep {
             range_step,
             range_count,
             nyquist_vel,
+            time,
             reflectivity,
             velocity,
         };
