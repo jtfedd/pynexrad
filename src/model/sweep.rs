@@ -1,9 +1,8 @@
-use std::f32::consts::PI;
-
 use chrono::{DateTime, Utc};
-use nexrad_decode::messages::digital_radar_data::{Message, ScaledMomentValue};
+use nexrad_decode::messages::{digital_radar_data::{Message, ScaledMomentValue}, volume_coverage_pattern::ElevationDataBlock};
 
 use crate::model::sweep_data::SweepData;
+use uom::si::{angle::{degree, radian}, f64::Angle, length::kilometer, velocity::meter_per_second};
 
 pub struct Sweep {
     pub elevation: f32,
@@ -68,15 +67,15 @@ fn extract_nyquist_vel(radials: &Vec<Box<Message>>) -> f32 {
         .radial_data_block
         .as_ref()
         .unwrap()
-        .nyquist_velocity;
+        .nyquist_velocity();
 
     for radial in radials {
-        if nyquist_vel != radial.radial_data_block.as_ref().unwrap().nyquist_velocity {
+        if nyquist_vel != radial.radial_data_block.as_ref().unwrap().nyquist_velocity() {
             panic!("Nyquist values are not consistent");
         }
     }
 
-    return nyquist_vel as f32 * 0.01;
+    return nyquist_vel.get::<meter_per_second>() as f32;
 }
 
 fn validate_sweep(radials: &Vec<Box<Message>>, data_type: &str) -> bool {
@@ -101,32 +100,21 @@ fn extract_range_info(radial: &Message, data_type: &str) -> (f32, f32, i32) {
         sample_data_moment = radial.velocity_data_block.as_ref().unwrap();
     }
 
-    let range_step = sample_data_moment.header.data_moment_range_sample_interval as f32 / 1000.0;
-    let range_first = sample_data_moment.header.data_moment_range as f32 / 1000.0;
+    let range_step = sample_data_moment.header.data_moment_range_sample_interval().get::<kilometer>() as f32;
+    let range_first = sample_data_moment.header.data_moment_range().get::<kilometer>() as f32;
     let range_count = sample_data_moment.header.number_of_data_moment_gates as i32;
 
     return (range_first, range_step, range_count);
 }
 
 impl Sweep {
-    pub(crate) fn new(radials: &Vec<Box<Message>>) -> Self {
-        let mut elevation_avg = 0.0 as f32;
-        for radial in radials.iter() {
-            elevation_avg += radial.header.elevation_angle;
-        }
-        elevation_avg /= radials.len() as f32;
-        elevation_avg *= PI / 180.0;
-
-        let elevation = elevation_avg;
+    pub(crate) fn new(elevation_meta: &ElevationDataBlock, radials: &Vec<Box<Message>>) -> Self {
+        let elevation = elevation_meta.elevation_angle().get::<radian>() as f32;
 
         let rad_hdr = &radials[0].header;
-        let az_first = (rad_hdr.azimuth_indexing_mode as f32 / 100.0) * PI / 180.0;
+        let az_first = rad_hdr.azimuth_indexing_mode().unwrap_or(Angle::new::<degree>(0.0)).get::<radian>() as f32;
         let az_count = radials.len() as i32;
-        let az_step = if rad_hdr.azimuth_resolution_spacing == 1 {
-            0.5 * PI / 180.0
-        } else {
-            PI / 180.0
-        };
+        let az_step = rad_hdr.azimuth_resolution_spacing().get::<radian>() as f32;
 
         let (r_first, r_step, r_count) = extract_range_info(&radials[0], "ref");
         let (v_first, v_step, v_count) = extract_range_info(&radials[0], "vel");

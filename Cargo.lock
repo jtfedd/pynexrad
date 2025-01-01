@@ -2575,6 +2575,7 @@ dependencies = [
  "nexrad-decode",
  "pyo3",
  "tokio",
+ "uom",
 ]
 
 [[package]]
