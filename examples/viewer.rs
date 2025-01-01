@@ -89,13 +89,13 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
     }
 
     let requested_product = model.product.as_str();
-    let product = match requested_product {
+    let sweeps = match requested_product {
         "ref" => &model.radar.reflectivity,
         "vel" => &model.radar.velocity,
         _ => panic!("Unexpected product: {}", requested_product),
     };
 
-    let sweep_max = (product.sweeps.len() - 2) as i32;
+    let sweep_max = (sweeps.len() - 2) as i32;
 
     if model.sweep > sweep_max {
         model.sweep = sweep_max;
@@ -145,8 +145,8 @@ fn view(app: &App, model: &Model, frame: Frame) {
     let requested_product = model.product.as_str();
 
     let data = match requested_product {
-        "ref" => &model.radar.reflectivity.sweeps[model.sweep as usize],
-        "vel" => &model.radar.velocity.sweeps[model.sweep as usize],
+        "ref" => &model.radar.reflectivity[model.sweep as usize],
+        "vel" => &model.radar.velocity[model.sweep as usize],
         _ => panic!("Unexpected product: {}", requested_product),
     };
 
