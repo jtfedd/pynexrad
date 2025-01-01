@@ -1,8 +1,16 @@
 use chrono::{DateTime, Utc};
-use nexrad_decode::messages::{digital_radar_data::{Message, ScaledMomentValue}, volume_coverage_pattern::ElevationDataBlock};
+use nexrad_decode::messages::{
+    digital_radar_data::{Message, ScaledMomentValue},
+    volume_coverage_pattern::ElevationDataBlock,
+};
 
 use crate::model::sweep_data::SweepData;
-use uom::si::{angle::{degree, radian}, f64::Angle, length::kilometer, velocity::meter_per_second};
+use uom::si::{
+    angle::{degree, radian},
+    f64::Angle,
+    length::kilometer,
+    velocity::meter_per_second,
+};
 
 pub struct Sweep {
     pub elevation: f32,
@@ -70,7 +78,13 @@ fn extract_nyquist_vel(radials: &Vec<Box<Message>>) -> f32 {
         .nyquist_velocity();
 
     for radial in radials {
-        if nyquist_vel != radial.radial_data_block.as_ref().unwrap().nyquist_velocity() {
+        if nyquist_vel
+            != radial
+                .radial_data_block
+                .as_ref()
+                .unwrap()
+                .nyquist_velocity()
+        {
             panic!("Nyquist values are not consistent");
         }
     }
@@ -100,8 +114,14 @@ fn extract_range_info(radial: &Message, data_type: &str) -> (f32, f32, i32) {
         sample_data_moment = radial.velocity_data_block.as_ref().unwrap();
     }
 
-    let range_step = sample_data_moment.header.data_moment_range_sample_interval().get::<kilometer>() as f32;
-    let range_first = sample_data_moment.header.data_moment_range().get::<kilometer>() as f32;
+    let range_step = sample_data_moment
+        .header
+        .data_moment_range_sample_interval()
+        .get::<kilometer>() as f32;
+    let range_first = sample_data_moment
+        .header
+        .data_moment_range()
+        .get::<kilometer>() as f32;
     let range_count = sample_data_moment.header.number_of_data_moment_gates as i32;
 
     return (range_first, range_step, range_count);
@@ -112,7 +132,10 @@ impl Sweep {
         let elevation = elevation_meta.elevation_angle().get::<radian>() as f32;
 
         let rad_hdr = &radials[0].header;
-        let az_first = rad_hdr.azimuth_indexing_mode().unwrap_or(Angle::new::<degree>(0.0)).get::<radian>() as f32;
+        let az_first = rad_hdr
+            .azimuth_indexing_mode()
+            .unwrap_or(Angle::new::<degree>(0.0))
+            .get::<radian>() as f32;
         let az_count = radials.len() as i32;
         let az_step = rad_hdr.azimuth_resolution_spacing().get::<radian>() as f32;
 

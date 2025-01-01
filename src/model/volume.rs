@@ -24,7 +24,7 @@ impl Volume {
                 match message.message {
                     Message::DigitalRadarData(radar_data_message) => {
                         radials.push(radar_data_message);
-                    },
+                    }
                     Message::VolumeCoveragePattern(volume_coverage_pattern) => {
                         vcp = Some(volume_coverage_pattern);
                     }
