@@ -1,5 +1,5 @@
 use nexrad_data::volume::File;
-use nexrad_decode::messages::{digital_radar_data, Message};
+use nexrad_decode::messages::{digital_radar_data, volume_coverage_pattern, Message};
 
 use crate::model::sweep::Sweep;
 
@@ -10,7 +10,7 @@ pub struct Volume {
 impl Volume {
     pub(crate) fn new(file: &File) -> Self {
         let mut radials: Vec<Box<digital_radar_data::Message>> = Vec::new();
-        let mut max_el_number: u8 = 0;
+        let mut vcp: Option<Box<volume_coverage_pattern::Message>> = None;
 
         for mut record in file.records() {
             if record.compressed() {
@@ -21,17 +21,20 @@ impl Volume {
 
             let messages = record.messages().expect("Has messages");
             for message in messages {
-                if let Message::DigitalRadarData(radar_data_message) = message.message {
-                    if radar_data_message.header.elevation_number > max_el_number {
-                        max_el_number = radar_data_message.header.elevation_number;
+                match message.message {
+                    Message::DigitalRadarData(radar_data_message) => {
+                        radials.push(radar_data_message);
                     }
-                    radials.push(radar_data_message);
+                    Message::VolumeCoveragePattern(volume_coverage_pattern) => {
+                        vcp = Some(volume_coverage_pattern);
+                    }
+                    _ => {}
                 }
             }
         }
 
         let mut sweeps: Vec<Vec<Box<digital_radar_data::Message>>> = Vec::new();
-        for _ in 0..max_el_number {
+        for _ in 0..vcp.as_ref().unwrap().header.number_of_elevation_cuts {
             sweeps.push(Vec::new());
         }
 
@@ -40,8 +43,8 @@ impl Volume {
         }
 
         let mut result_sweeps: Vec<Sweep> = Vec::new();
-        for sweep in sweeps {
-            result_sweeps.push(Sweep::new(&sweep));
+        for (i, sweep) in sweeps.iter().enumerate() {
+            result_sweeps.push(Sweep::new(&vcp.as_ref().unwrap().elevations[i], &sweep));
         }
 
         Self {
