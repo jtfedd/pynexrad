@@ -1,10 +1,12 @@
 use chrono::{DateTime, Utc};
 use nexrad_decode::messages::{
     digital_radar_data::{Message, ScaledMomentValue},
-    volume_coverage_pattern::ElevationDataBlock,
+    volume_coverage_pattern::{ElevationDataBlock, WaveformType},
 };
 
 use crate::model::sweep_data::SweepData;
+use crate::model::sweep_type::*;
+
 use uom::si::{
     angle::{degree, radian},
     f64::Angle,
@@ -26,6 +28,8 @@ pub struct Sweep {
     pub nyquist_vel: f32,
 
     pub time: DateTime<Utc>,
+
+    pub sweep_type: u8,
 
     pub reflectivity: Option<SweepData>,
     pub velocity: Option<SweepData>,
@@ -165,6 +169,18 @@ impl Sweep {
             .max()
             .unwrap();
 
+        let is_reflectivity =
+            reflectivity.is_some() && elevation_meta.waveform_type() != WaveformType::CDW;
+        let is_velocity = velocity.is_some() && elevation_meta.waveform_type() != WaveformType::CS;
+
+        let mut sweep_type: u8 = 0;
+        if is_reflectivity {
+            sweep_type |= REFLECTIVITY;
+        }
+        if is_velocity {
+            sweep_type |= VELOCITY;
+        }
+
         return Self {
             elevation,
             az_first,
@@ -175,15 +191,16 @@ impl Sweep {
             range_count,
             nyquist_vel,
             time,
+            sweep_type,
             reflectivity,
             velocity,
         };
     }
 
-    pub(crate) fn has_product(&self, product: &str) -> bool {
+    pub(crate) fn has_product(&self, product: SweepType) -> bool {
         return match product {
-            "ref" => self.reflectivity.is_some(),
-            "vel" => self.velocity.is_some(),
+            REFLECTIVITY => self.reflectivity.is_some(),
+            VELOCITY => self.velocity.is_some(),
             _ => false,
         };
     }
