@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 
-use crate::model::sweep::Sweep;
+use crate::model::{sweep::Sweep, sweep_type::*};
 
 #[derive(Clone)]
 #[pyclass(name = "Sweep")]
@@ -23,11 +23,14 @@ pub struct PySweep {
     pub range_count: i32,
 
     #[pyo3(get)]
+    pub timestamp: i64,
+
+    #[pyo3(get)]
     pub data: Vec<u8>,
 }
 
 impl PySweep {
-    pub(crate) fn empty(elevation: f32) -> Self {
+    pub(crate) fn empty(timestamp: i64, elevation: f32) -> Self {
         Self {
             elevation,
             az_first: 0.0,
@@ -36,22 +39,23 @@ impl PySweep {
             range_first: 0.0,
             range_step: 0.0,
             range_count: 0,
+            timestamp: timestamp,
             data: Vec::new(),
         }
     }
 
-    pub(crate) fn new(sweep: &Sweep, data_type: &str) -> Self {
+    pub(crate) fn new(sweep: &Sweep, data_type: SweepType) -> Self {
         let mut data: Vec<u8> = Vec::new();
 
         let (min, max) = match data_type {
-            "ref" => (-20.0, 80.0),
-            "vel" => (-100.0, 100.0),
+            REFLECTIVITY => (-20.0, 80.0),
+            VELOCITY => (-100.0, 100.0),
             _ => panic!("Unexpected product: {}", data_type),
         };
 
         let product = match data_type {
-            "ref" => sweep.reflectivity.as_ref().unwrap(),
-            "vel" => sweep.velocity.as_ref().unwrap(),
+            REFLECTIVITY => sweep.reflectivity.as_ref().unwrap(),
+            VELOCITY => sweep.velocity.as_ref().unwrap(),
             _ => panic!("Unexpected product {}", data_type),
         };
 
@@ -94,7 +98,7 @@ impl PySweep {
         }
 
         if last_gate < first_gate {
-            return PySweep::empty(sweep.elevation);
+            return PySweep::empty(sweep.time.timestamp(), sweep.elevation);
         }
 
         for radial in 0..product.radials {
@@ -128,6 +132,7 @@ impl PySweep {
             range_first: range_first - sweep.range_step,
             range_step: sweep.range_step,
             range_count: range_count + 2,
+            timestamp: sweep.time.timestamp(),
             data,
         }
     }
