@@ -1,5 +1,5 @@
 use nexrad_data::volume;
-use nexrad_decode::messages::{digital_radar_data, volume_coverage_pattern, Message};
+use nexrad_decode::messages::{digital_radar_data, volume_coverage_pattern, MessageContents};
 
 fn main() {
     println!("Loading file");
@@ -22,11 +22,11 @@ fn main() {
 
         let messages = record.messages().expect("Has messages");
         for message in messages {
-            match message.message {
-                Message::DigitalRadarData(radar_data_message) => {
+            match message.contents().clone() {
+                MessageContents::DigitalRadarData(radar_data_message) => {
                     radials.push(radar_data_message);
                 }
-                Message::VolumeCoveragePattern(m) => vcp_option = Some(m),
+                MessageContents::VolumeCoveragePattern(m) => vcp_option = Some(m),
                 _ => {}
             }
         }
