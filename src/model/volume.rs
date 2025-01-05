@@ -43,8 +43,11 @@ impl Volume {
         }
 
         let mut result_sweeps: Vec<Sweep> = Vec::new();
-        for (i, sweep) in sweeps.iter().enumerate() {
-            result_sweeps.push(Sweep::new(&vcp.as_ref().unwrap().elevations[i], &sweep));
+        for (i, radials) in sweeps.iter().enumerate() {
+            let sweep = Sweep::new(&vcp.as_ref().unwrap().elevations[i], &radials);
+            if sweep.is_some() {
+                result_sweeps.push(sweep.unwrap());
+            }
         }
 
         Self {

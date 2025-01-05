@@ -3,7 +3,7 @@ use std::io::Write;
 
 #[tokio::main]
 async fn main() -> Result<(), &'static str> {
-    let name = "KDMX20240521_215236_V06";
+    let name = "KDMX20240521_224629_V06";
     let id = Identifier::new(name.to_string());
 
     println!("Downloading file \"{}\"...", name);
