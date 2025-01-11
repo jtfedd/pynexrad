@@ -23,14 +23,16 @@ pub struct PySweep {
     pub range_count: i32,
 
     #[pyo3(get)]
-    pub timestamp: i64,
+    pub start_time: i64,
+    #[pyo3(get)]
+    pub end_time: i64,
 
     #[pyo3(get)]
     pub data: Vec<u8>,
 }
 
 impl PySweep {
-    pub(crate) fn empty(timestamp: i64, elevation: f32) -> Self {
+    pub(crate) fn empty(start_time: i64, end_time: i64, elevation: f32) -> Self {
         Self {
             elevation,
             az_first: 0.0,
@@ -39,7 +41,8 @@ impl PySweep {
             range_first: 0.0,
             range_step: 0.0,
             range_count: 0,
-            timestamp: timestamp,
+            start_time: start_time,
+            end_time: end_time,
             data: Vec::new(),
         }
     }
@@ -98,7 +101,7 @@ impl PySweep {
         }
 
         if last_gate < first_gate {
-            return PySweep::empty(sweep.time.timestamp(), sweep.elevation);
+            return PySweep::empty(sweep.start_time.timestamp(), sweep.end_time.timestamp(), sweep.elevation);
         }
 
         for radial in 0..product.radials {
@@ -132,7 +135,8 @@ impl PySweep {
             range_first: range_first - sweep.range_step,
             range_step: sweep.range_step,
             range_count: range_count + 2,
-            timestamp: sweep.time.timestamp(),
+            start_time: sweep.start_time.timestamp(),
+            end_time: sweep.end_time.timestamp(),
             data,
         }
     }

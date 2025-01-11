@@ -29,7 +29,8 @@ pub struct Sweep {
 
     pub nyquist_vel: f32,
 
-    pub time: DateTime<Utc>,
+    pub start_time: DateTime<Utc>,
+    pub end_time: DateTime<Utc>,
 
     pub sweep_type: u8,
 
@@ -175,11 +176,17 @@ impl Sweep {
         let reflectivity = extract_data(radials, "ref", az_count as usize, range_count as usize);
         let velocity = extract_data(radials, "vel", az_count as usize, range_count as usize);
 
-        let time = radials
+        let start_time = radials
             .iter()
             .map(|r| r.header.date_time().unwrap())
             .max()
             .unwrap();
+
+        let end_time = radials
+        .iter()
+        .map(|r| r.header.date_time().unwrap())
+        .max()
+        .unwrap();
 
         let is_reflectivity =
             reflectivity.is_some() && elevation_meta.waveform_type() != WaveformType::CDW;
@@ -202,7 +209,8 @@ impl Sweep {
             range_step,
             range_count,
             nyquist_vel,
-            time,
+            start_time,
+            end_time,
             sweep_type,
             reflectivity,
             velocity,

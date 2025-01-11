@@ -27,7 +27,7 @@ fn collect_sweeps(volume: &Volume, data_type: SweepType) -> Vec<PySweep> {
         sweeps.push(PySweep::new(sweep, data_type))
     }
 
-    sweeps.sort_by(|a, b| a.timestamp.partial_cmp(&b.timestamp).unwrap());
+    sweeps.sort_by(|a, b| a.start_time.partial_cmp(&b.start_time).unwrap());
 
     return sweeps;
 }
