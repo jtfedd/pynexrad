@@ -2053,6 +2053,7 @@ checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
 [[package]]
 name = "nexrad-data"
 version = "0.1.1"
+source = "git+https://github.com/danielway/nexrad.git?rev=20dc13d07a05a9b9164bdcdd58f42bed3707c8cd#20dc13d07a05a9b9164bdcdd58f42bed3707c8cd"
 dependencies = [
  "bincode",
  "bzip2",
@@ -2071,6 +2072,7 @@ dependencies = [
 [[package]]
 name = "nexrad-decode"
 version = "0.1.0-rc5"
+source = "git+https://github.com/danielway/nexrad.git?rev=20dc13d07a05a9b9164bdcdd58f42bed3707c8cd#20dc13d07a05a9b9164bdcdd58f42bed3707c8cd"
 dependencies = [
  "bincode",
  "chrono",
@@ -2084,6 +2086,7 @@ dependencies = [
 [[package]]
 name = "nexrad-model"
 version = "0.1.0-rc3"
+source = "git+https://github.com/danielway/nexrad.git?rev=20dc13d07a05a9b9164bdcdd58f42bed3707c8cd#20dc13d07a05a9b9164bdcdd58f42bed3707c8cd"
 dependencies = [
  "thiserror",
 ]
