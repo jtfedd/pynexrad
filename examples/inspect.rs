@@ -1,16 +1,15 @@
 use nexrad_data::volume;
-use nexrad_decode::messages::{digital_radar_data, volume_coverage_pattern, Message};
+use nexrad_decode::messages::{digital_radar_data, volume_coverage_pattern, MessageContents};
 
 fn main() {
     println!("Loading file");
-    let file_name = "examples/KDMX20240521_215236_V06";
+    let file_name = "examples/KDMX20240521_224629_V06";
     let bytes = std::fs::read(file_name).expect("file exists");
     let file = volume::File::new(bytes);
 
     // Collect all of the radials from the file
     let mut radials: Vec<Box<digital_radar_data::Message>> = Vec::new();
-    let mut vcp: Option<Box<volume_coverage_pattern::Message>> = None;
-    let mut max_el_number: u8 = 0;
+    let mut vcp_option: Option<Box<volume_coverage_pattern::Message>> = None;
 
     let records = file.records();
 
@@ -23,21 +22,21 @@ fn main() {
 
         let messages = record.messages().expect("Has messages");
         for message in messages {
-            match message.message {
-                Message::DigitalRadarData(radar_data_message) => {
-                    if radar_data_message.header.elevation_number > max_el_number {
-                        max_el_number = radar_data_message.header.elevation_number;
-                    }
+            match message.contents().clone() {
+                MessageContents::DigitalRadarData(radar_data_message) => {
                     radials.push(radar_data_message);
                 }
-                Message::VolumeCoveragePattern(m) => vcp = Some(m),
+                MessageContents::VolumeCoveragePattern(m) => vcp_option = Some(m),
                 _ => {}
             }
         }
     }
 
+    let vcp = vcp_option.as_ref().unwrap();
+    // println!("{:#?}", vcp);
+
     let mut sweeps: Vec<Vec<&Box<digital_radar_data::Message>>> = Vec::new();
-    for _ in 0..max_el_number {
+    for _ in 0..vcp.header.number_of_elevation_cuts {
         sweeps.push(Vec::new());
     }
 
@@ -46,6 +45,16 @@ fn main() {
     }
 
     for (i, sweep) in sweeps.iter().enumerate() {
+        println!(
+            "{}, {}, {}",
+            i,
+            sweep.len(),
+            vcp.elevations[i].elevation_angle_degrees()
+        );
+        if sweep.len() == 0 {
+            continue;
+        }
+
         let mut max_el = 0 as f32;
         let mut min_el = 1000 as f32;
         let mut avg_el = 0 as f32;
@@ -71,20 +80,18 @@ fn main() {
         avg_el /= sweep.len() as f32;
 
         println!(
-            "{:<2} {:>7.2} {:>7.2} {:>7.2} {} {:>15} {:<4?}",
+            "{:<2} {:<4} {:>7.2} {:>7.2} {:>7.2} {} {:>15} {:<4?}",
             i,
+            sweep.len(),
             min_el,
             max_el,
             avg_el,
             max_time.format("%d/%m/%Y %H:%M:%S"),
             format_args!(
                 "{:>15}",
-                format!(
-                    "{:?}",
-                    vcp.as_ref().unwrap().elevations[i].channel_configuration()
-                )
+                format!("{:?}", vcp.elevations[i].channel_configuration())
             ),
-            vcp.as_ref().unwrap().elevations[i].waveform_type(),
+            vcp.elevations[i].waveform_type(),
         );
     }
 }

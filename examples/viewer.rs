@@ -23,7 +23,7 @@ struct Model {
 
 fn model(app: &App) -> Model {
     println!("Loading file");
-    let file_name = "examples/KDMX20240521_215236_V06";
+    let file_name = "examples/KDMX20240521_224629_V06";
     let bytes = std::fs::read(file_name).expect("file exists");
     let file = volume::File::new(bytes);
 

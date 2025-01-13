@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use chrono::{DateTime, Utc};
 use nexrad_decode::messages::{
     digital_radar_data::{Message, ScaledMomentValue},
@@ -27,7 +29,8 @@ pub struct Sweep {
 
     pub nyquist_vel: f32,
 
-    pub time: DateTime<Utc>,
+    pub start_time: DateTime<Utc>,
+    pub end_time: DateTime<Utc>,
 
     pub sweep_type: u8,
 
@@ -132,7 +135,15 @@ fn extract_range_info(radial: &Message, data_type: &str) -> (f32, f32, i32) {
 }
 
 impl Sweep {
-    pub(crate) fn new(elevation_meta: &ElevationDataBlock, radials: &Vec<Box<Message>>) -> Self {
+    pub(crate) fn new(
+        elevation_meta: &ElevationDataBlock,
+        radials: &Vec<Box<Message>>,
+    ) -> Option<Self> {
+        // If there are no radials we cannot create a sweep
+        if radials.len() == 0 {
+            return None;
+        }
+
         let elevation = elevation_meta.elevation_angle().get::<radian>() as f32;
 
         let rad_hdr = &radials[0].header;
@@ -142,6 +153,11 @@ impl Sweep {
             .get::<radian>() as f32;
         let az_count = radials.len() as i32;
         let az_step = rad_hdr.azimuth_resolution_spacing().get::<radian>() as f32;
+
+        // Verify that there are the expected number of radials to make the sweep
+        if ((2.0 * PI) / az_step).round() != az_count as f32 {
+            return None;
+        }
 
         let (r_first, r_step, r_count) = extract_range_info(&radials[0], "ref");
         let (v_first, v_step, v_count) = extract_range_info(&radials[0], "vel");
@@ -163,7 +179,13 @@ impl Sweep {
         let reflectivity = extract_data(radials, "ref", az_count as usize, range_count as usize);
         let velocity = extract_data(radials, "vel", az_count as usize, range_count as usize);
 
-        let time = radials
+        let start_time = radials
+            .iter()
+            .map(|r| r.header.date_time().unwrap())
+            .max()
+            .unwrap();
+
+        let end_time = radials
             .iter()
             .map(|r| r.header.date_time().unwrap())
             .max()
@@ -181,7 +203,7 @@ impl Sweep {
             sweep_type |= VELOCITY;
         }
 
-        return Self {
+        return Some(Self {
             elevation,
             az_first,
             az_step,
@@ -190,11 +212,12 @@ impl Sweep {
             range_step,
             range_count,
             nyquist_vel,
-            time,
+            start_time,
+            end_time,
             sweep_type,
             reflectivity,
             velocity,
-        };
+        });
     }
 
     pub(crate) fn has_product(&self, product: SweepType) -> bool {

@@ -1,5 +1,5 @@
 use nexrad_data::volume::File;
-use nexrad_decode::messages::{digital_radar_data, volume_coverage_pattern, Message};
+use nexrad_decode::messages::{digital_radar_data, volume_coverage_pattern, MessageContents};
 
 use crate::model::sweep::Sweep;
 
@@ -21,11 +21,11 @@ impl Volume {
 
             let messages = record.messages().expect("Has messages");
             for message in messages {
-                match message.message {
-                    Message::DigitalRadarData(radar_data_message) => {
+                match message.contents().clone() {
+                    MessageContents::DigitalRadarData(radar_data_message) => {
                         radials.push(radar_data_message);
                     }
-                    Message::VolumeCoveragePattern(volume_coverage_pattern) => {
+                    MessageContents::VolumeCoveragePattern(volume_coverage_pattern) => {
                         vcp = Some(volume_coverage_pattern);
                     }
                     _ => {}
@@ -43,8 +43,11 @@ impl Volume {
         }
 
         let mut result_sweeps: Vec<Sweep> = Vec::new();
-        for (i, sweep) in sweeps.iter().enumerate() {
-            result_sweeps.push(Sweep::new(&vcp.as_ref().unwrap().elevations[i], &sweep));
+        for (i, radials) in sweeps.iter().enumerate() {
+            let sweep = Sweep::new(&vcp.as_ref().unwrap().elevations[i], radials);
+            if sweep.is_some() {
+                result_sweeps.push(sweep.unwrap());
+            }
         }
 
         Self {
