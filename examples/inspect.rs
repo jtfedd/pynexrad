@@ -45,7 +45,12 @@ fn main() {
     }
 
     for (i, sweep) in sweeps.iter().enumerate() {
-        println!("{}, {}, {}", i, sweep.len(), vcp.elevations[i].elevation_angle_degrees());
+        println!(
+            "{}, {}, {}",
+            i,
+            sweep.len(),
+            vcp.elevations[i].elevation_angle_degrees()
+        );
         if sweep.len() == 0 {
             continue;
         }
@@ -84,10 +89,7 @@ fn main() {
             max_time.format("%d/%m/%Y %H:%M:%S"),
             format_args!(
                 "{:>15}",
-                format!(
-                    "{:?}",
-                    vcp.elevations[i].channel_configuration()
-                )
+                format!("{:?}", vcp.elevations[i].channel_configuration())
             ),
             vcp.elevations[i].waveform_type(),
         );

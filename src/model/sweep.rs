@@ -135,7 +135,10 @@ fn extract_range_info(radial: &Message, data_type: &str) -> (f32, f32, i32) {
 }
 
 impl Sweep {
-    pub(crate) fn new(elevation_meta: &ElevationDataBlock, radials: &Vec<Box<Message>>) -> Option<Self> {
+    pub(crate) fn new(
+        elevation_meta: &ElevationDataBlock,
+        radials: &Vec<Box<Message>>,
+    ) -> Option<Self> {
         // If there are no radials we cannot create a sweep
         if radials.len() == 0 {
             return None;
@@ -152,8 +155,8 @@ impl Sweep {
         let az_step = rad_hdr.azimuth_resolution_spacing().get::<radian>() as f32;
 
         // Verify that there are the expected number of radials to make the sweep
-        if ((2.0 * PI) /  az_step).round() != az_count as f32 {
-            return None
+        if ((2.0 * PI) / az_step).round() != az_count as f32 {
+            return None;
         }
 
         let (r_first, r_step, r_count) = extract_range_info(&radials[0], "ref");
@@ -183,10 +186,10 @@ impl Sweep {
             .unwrap();
 
         let end_time = radials
-        .iter()
-        .map(|r| r.header.date_time().unwrap())
-        .max()
-        .unwrap();
+            .iter()
+            .map(|r| r.header.date_time().unwrap())
+            .max()
+            .unwrap();
 
         let is_reflectivity =
             reflectivity.is_some() && elevation_meta.waveform_type() != WaveformType::CDW;

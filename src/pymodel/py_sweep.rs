@@ -101,7 +101,11 @@ impl PySweep {
         }
 
         if last_gate < first_gate {
-            return PySweep::empty(sweep.start_time.timestamp(), sweep.end_time.timestamp(), sweep.elevation);
+            return PySweep::empty(
+                sweep.start_time.timestamp(),
+                sweep.end_time.timestamp(),
+                sweep.elevation,
+            );
         }
 
         for radial in 0..product.radials {
