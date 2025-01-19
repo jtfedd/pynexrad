@@ -22,10 +22,6 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install OpenSSL
-        run: sudo apt-get install -y libssl-dev
-      - name: Set OpenSSL environment variable
-        run: echo "OPENSSL_DIR=/usr/lib/ssl" >> $GITHUB_ENV
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         if: ${{ matrix.target != 'aarch64' }}
@@ -34,6 +30,8 @@ jobs:
           args: --release --out dist --find-interpreter
           sccache: 'true'
           manylinux: auto
+          before-script-linux: |
+            sudo apt-get install -y libssl-dev
       - name: Build wheels aarch64
         uses: PyO3/maturin-action@v1
         if: ${{ matrix.target == 'aarch64' }}
@@ -42,6 +40,8 @@ jobs:
             args: --release --out dist --find-interpreter
             sccache: 'true'
             manylinux: 2_28
+            before-script-linux: |
+              sudo apt-get install -y libssl-dev
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
