@@ -31,7 +31,7 @@ jobs:
           sccache: 'true'
           manylinux: auto
           before-script-linux: |
-            sudo apt-get install -y libssl-dev
+            apt-get install -y libssl-dev
       - name: Build wheels aarch64
         uses: PyO3/maturin-action@v1
         if: ${{ matrix.target == 'aarch64' }}
@@ -41,7 +41,7 @@ jobs:
             sccache: 'true'
             manylinux: 2_28
             before-script-linux: |
-              sudo apt-get install -y libssl-dev
+              apt-get install -y libssl-dev
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
