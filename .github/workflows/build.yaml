@@ -45,25 +45,18 @@ jobs:
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: auto
           before-script-linux: |
-            if command -v apt-get &> /dev/null; then
-              apt-get update -y
-              apt-get install -y pkg-config libssl-dev
-            elif command -v pacman &> /dev/null; then
-              pacman -Syu --noconfirm
-              pacman -S --noconfirm pkgconf openssl
-            elif command -v dnf &> /dev/null; then
-              dnf update -y
-              dnf -y install pkgconf perl-FindBin perl-IPC-Cmd openssl-devel
-            elif command -v apk &> /dev/null; then
-              apk update
-              apk add pkgconf openssl-dev
-            elif command -v yum &> /dev/null; then
-              yum update -y
-              yum install -y pkgconf openssl-devel
-            else
-              echo "Package manager not found. Exiting."
-              exit 1
-            fi
+            case "${{ matrix.target }}" in
+              "aarch64" | "armv7" | "s390x" | "ppc64le")
+                # NOTE: pypa/manylinux docker images are Debian based
+                sudo apt-get update
+                sudo apt-get install -y pkg-config libssl-dev
+                ;;
+              "x86" | "x86_64")
+                # NOTE: rust-cross/manylinux docker images are CentOS based
+                yum update -y
+                yum install -y openssl openssl-devel
+                ;;
+            esac
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
