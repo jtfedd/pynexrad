@@ -31,6 +31,9 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - run: |
+          sudo apt-get update
+          sudo apt-get install --yes --upgrade build-essential cmake libssl-dev glibc-source
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -38,9 +41,7 @@ jobs:
           args: --release --out dist --find-interpreter
           sccache: 'true'
           manylinux: ${{ matrix.manylinux }}
-          before-script-linux: |
-            sudo apt-get update
-            sudo apt-get install --yes --upgrade build-essential cmake libssl-dev glibc-source
+          container: off
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
