@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - '*'
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 permissions:
   contents: read
@@ -41,7 +44,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-${{matrix.target}}
           path: dist
 
   windows:
@@ -64,7 +67,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-${{matrix.target}}
           path: dist
 
   macos:
@@ -86,7 +89,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-${{matrix.target}}
           path: dist
 
   sdist:
@@ -101,7 +104,7 @@ jobs:
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-sdist
           path: dist
 
   release:
@@ -116,13 +119,14 @@ jobs:
       - name: Download Builds
         uses: actions/download-artifact@v4
         with:
-          name: wheels
           path: dist
+          name: wheels-*
+          merge-multiple: true
       - name: Display structure of downloaded files
         run: ls -R
-      - name: Publish Release
-        uses: softprops/action-gh-release@v1
-        with:
-          generate_release_notes: true
-      - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      # - name: Publish Release
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     generate_release_notes: true
+      # - name: Publish package distributions to PyPI
+      #   uses: pypa/gh-action-pypi-publish@release/v1
