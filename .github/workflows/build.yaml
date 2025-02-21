@@ -89,6 +89,9 @@ jobs:
           args: --release --out dist --find-interpreter
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: musllinux_1_2
+          before-script-linux: |
+            apk update
+            apk add -y pkgconf openssl-dev
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
