@@ -13,9 +13,6 @@ on:
 permissions:
   contents: read
 
-env:
-  PYTHON_VERSION: 3.12
-
 jobs:
   linux:
     runs-on: ${{ matrix.platform.runner }}
