@@ -57,6 +57,9 @@ jobs:
             elif command -v apk &> /dev/null; then
               apk update
               apk add pkgconf openssl-dev
+            elif command -v yum &> /dev/null; then
+              yum update -y
+              yum install -y pkgconf openssl-devel
             else
               echo "Package manager not found. Exiting."
               exit 1
