@@ -182,7 +182,7 @@ impl Sweep {
         let start_time = radials
             .iter()
             .map(|r| r.header.date_time().unwrap())
-            .max()
+            .min()
             .unwrap();
 
         let end_time = radials
