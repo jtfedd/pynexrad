@@ -19,7 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [x86_64, x86, aarch64]
+        include:
+          - target: x86
+            manylinux: auto
+          - target: x86_64
+            manylinux: auto
+          - target: aarch64
+            manylinux: 2_28
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -27,20 +33,14 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Build wheels
         uses: PyO3/maturin-action@v1
-        if: ${{ matrix.target != 'aarch64' }}
         with:
           target: ${{ matrix.target }}
           args: --release --out dist --find-interpreter
           sccache: 'true'
-          manylinux: auto
-      - name: Build wheels aarch64
-        uses: PyO3/maturin-action@v1
-        if: ${{ matrix.target == 'aarch64' }}
-        with:
-            target: ${{ matrix.target }}
-            args: --release --out dist --find-interpreter
-            sccache: 'true'
-            manylinux: 2_28
+          manylinux: ${{ matrix.manylinux }}
+          before-script-linux: |
+            sudo apt-get update
+            sudo apt-get install --yes --upgrade build-essential cmake libssl-dev glibc-source
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
