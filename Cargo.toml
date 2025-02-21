@@ -11,6 +11,7 @@ tokio = { version = "1", features = ["rt-multi-thread"] }
 uom = { version = "0.36.0"}
 nexrad-data = { git = "https://github.com/danielway/nexrad.git", rev = "20dc13d07a05a9b9164bdcdd58f42bed3707c8cd" }
 nexrad-decode = { git = "https://github.com/danielway/nexrad.git", rev = "20dc13d07a05a9b9164bdcdd58f42bed3707c8cd" }
+openssl = { version = "0.10", features = ["vendored"] }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
