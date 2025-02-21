@@ -120,7 +120,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
-          name: wheels-*
+          pattern: wheels-*
           merge-multiple: true
       - name: Display structure of downloaded files
         run: ls -R
