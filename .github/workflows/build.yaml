@@ -45,7 +45,7 @@ jobs:
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: auto
           before-script-linux: |
-            case "${{ matrix.target }}" in
+            case "${{ matrix.platform.target }}" in
               "aarch64" | "armv7" | "s390x" | "ppc64le")
                 # NOTE: pypa/manylinux docker images are Debian based
                 sudo apt-get update
