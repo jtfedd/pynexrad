@@ -9,8 +9,8 @@ pyo3 = "0.19.0"
 chrono = "0.4"
 tokio = { version = "1", features = ["rt-multi-thread"] }
 uom = { version = "0.36.0"}
-nexrad-data = { git = "https://github.com/jtfedd/nexrad.git", rev = "220ff9f5e5151cf98d598c1c20fc1eb48d886a04" }
-nexrad-decode = { git = "https://github.com/jtfedd/nexrad.git", rev = "220ff9f5e5151cf98d598c1c20fc1eb48d886a04" }
+nexrad-data = { git = "https://github.com/danielway/nexrad.git", rev = "366395d14555459f8f57d964c0890aa59ecfcb51" }
+nexrad-decode = { git = "https://github.com/danielway/nexrad.git", rev = "366395d14555459f8f57d964c0890aa59ecfcb51" }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
