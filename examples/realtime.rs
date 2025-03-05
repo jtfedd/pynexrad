@@ -14,18 +14,30 @@ async fn main() {
 
     let chunks = list_chunks_in_volume(site, latest_volume, 1000).await.ok().unwrap();
 
-    let mut chunk_names = HashMap::new();
+    let mut chunk_cache = HashMap::new();
     for chunk in chunks {
-        chunk_names.insert(chunk.name().to_string(), chunk);
+        chunk_cache.insert(chunk.name().to_string(), chunk);
     }
 
+    let mut next_poll = std::time::SystemTime::now() + Duration::from_secs(5);
+
     loop {
-        sleep(Duration::from_secs(1)).await;
+        let now = std::time::SystemTime::now();
+        if now < next_poll {
+            sleep(next_poll.duration_since(now).unwrap()).await;
+        }
+        next_poll = std::time::SystemTime::now() + Duration::from_secs(5);
+
+        let now = std::time::SystemTime::now();
+        let datetime: chrono::DateTime<chrono::Utc> = now.into();
+        dbg!("POLLING", datetime.to_rfc3339());
+
         let chunks = list_chunks_in_volume(site, latest_volume, 1000).await.ok().unwrap();
         for chunk in chunks {
-            if !chunk_names.contains_key(chunk.name()) {
-                chunk_names.insert(chunk.name().to_string(), chunk.clone());
+            if !chunk_cache.contains_key(chunk.name()) {
+                chunk_cache.insert(chunk.name().to_string(), chunk.clone());
                 dbg!(chunk.name(), chunk.date_time().unwrap());
+                next_poll = std::time::SystemTime::from(chunk.date_time().unwrap()) + Duration::from_secs(5);
             }
 
             if chunk.chunk_type().unwrap() == ChunkType::End {
