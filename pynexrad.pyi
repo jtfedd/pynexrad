@@ -15,7 +15,7 @@ class PySweep:
     start_time: int
     end_time: int
 
-    date: bytes
+    data: bytes
 
 
 class PyLevel2File:
