@@ -14,7 +14,7 @@ fn download_nexrad_file_impl(identifier: String) -> PyLevel2File {
         .block_on(async { download_file(Identifier::new(identifier)).await })
         .expect("Should download without error");
 
-    convert_nexrad_file(&f)
+    convert_nexrad_file(f.records())
 }
 
 /// Lists records from a particular site and date

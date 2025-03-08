@@ -28,7 +28,7 @@ fn model(app: &App) -> Model {
     let file = volume::File::new(bytes);
 
     println!("Converting file");
-    let pyradar = convert_nexrad_file(&file);
+    let pyradar = convert_nexrad_file(file.records());
 
     let ref_scale = image::load(
         BufReader::new(File::open("examples/reflectivity_scale.png").expect("file exists")),
