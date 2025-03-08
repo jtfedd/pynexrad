@@ -2,6 +2,9 @@ from typing import List
 
 
 class PySweep:
+    """
+    PySweep represents a sweep at a single elevation
+    """
     elevation: float
 
     az_first: float
@@ -19,13 +22,21 @@ class PySweep:
 
 
 class PyLevel2File:
+    """
+    PyLevel2File contains an entire volume scan
+    """
+
     reflectivity: List[PySweep]
     velocity: List[PySweep]
 
 
 def list_records(site: str, year: int, month: int, day: int) -> List[str]:
-    pass
+    """
+    list_records downloads all available records for the given parameters
+    """
 
 
 def download_nexrad_file(id: str) -> PyLevel2File:
-    pass
+    """
+    download_nexrad_file downloads the volume file for the given key
+    """
