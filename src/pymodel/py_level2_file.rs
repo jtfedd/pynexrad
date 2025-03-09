@@ -3,8 +3,8 @@ use crate::model::volume::Volume;
 use crate::pymodel::py_sweep::PySweep;
 use pyo3::prelude::*;
 
+#[pyclass]
 #[derive(Clone)]
-#[pyclass(name = "Level2File")]
 pub struct PyLevel2File {
     #[pyo3(get)]
     pub reflectivity: Vec<PySweep>,
