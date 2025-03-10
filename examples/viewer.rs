@@ -1,7 +1,7 @@
 use image::{DynamicImage, GenericImageView, ImageFormat};
 use nannou::prelude::*;
 use nexrad_data::volume;
-use pynexrad::{convert::convert_nexrad_file, pymodel::py_level2_file::PyLevel2File};
+use pynexrad::{bindings::convert::convert_nexrad_file, pymodel::py_level2_file::PyLevel2File};
 use std::fs::File;
 use std::io::BufReader;
 

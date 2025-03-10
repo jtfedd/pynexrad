@@ -3,7 +3,7 @@ use std::time::Duration;
 use nexrad_data::aws::realtime::{download_chunk, Chunk, ChunkIdentifier, ChunkType, VolumeIndex};
 use nexrad_data::aws::realtime::{get_latest_volume, list_chunks_in_volume};
 use nexrad_data::volume::Record;
-use pynexrad::convert::convert_nexrad_file;
+use pynexrad::bindings::convert::convert_nexrad_file;
 use pynexrad::pymodel::py_level2_file::PyLevel2File;
 use std::collections::{HashMap, HashSet};
 use tokio::time::sleep;
