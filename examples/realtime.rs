@@ -5,10 +5,14 @@ use nexrad_data::aws::realtime::{get_latest_volume, list_chunks_in_volume};
 use nexrad_data::volume::Record;
 use pynexrad::convert::convert_nexrad_file;
 use pynexrad::pymodel::py_level2_file::PyLevel2File;
-use tokio::time::sleep;
 use std::collections::{HashMap, HashSet};
+use tokio::time::sleep;
 
-async fn get_chunk<'a>(chunk_cache: &mut HashMap<usize, Vec<Chunk<'a>>>, chunk_id: ChunkIdentifier, site: &str) {
+async fn get_chunk<'a>(
+    chunk_cache: &mut HashMap<usize, Vec<Chunk<'a>>>,
+    chunk_id: ChunkIdentifier,
+    site: &str,
+) {
     if !chunk_cache.contains_key(&chunk_id.volume().as_number()) {
         chunk_cache.insert(chunk_id.volume().as_number(), Vec::new());
     }
@@ -16,7 +20,10 @@ async fn get_chunk<'a>(chunk_cache: &mut HashMap<usize, Vec<Chunk<'a>>>, chunk_i
     let (_, chunk) = download_chunk(site, &chunk_id).await.ok().unwrap();
     println!("Downloaded {}", chunk_id.name());
 
-    chunk_cache.get_mut(&chunk_id.volume().as_number()).unwrap().push(chunk);
+    chunk_cache
+        .get_mut(&chunk_id.volume().as_number())
+        .unwrap()
+        .push(chunk);
 }
 
 fn get_records<'a>(chunks: &'a Vec<Chunk<'a>>) -> Vec<Record<'a>> {
@@ -41,7 +48,10 @@ async fn main() {
     let mut latest_volume = get_latest_volume(site).await.ok().unwrap().volume.unwrap();
     println!("LATEST VOLUME: {}", latest_volume.as_number());
 
-    let chunks = list_chunks_in_volume(site, latest_volume, 1000).await.ok().unwrap();
+    let chunks = list_chunks_in_volume(site, latest_volume, 1000)
+        .await
+        .ok()
+        .unwrap();
     let mut last_chunk = chunks.last().unwrap().clone();
 
     let mut chunk_id_cache: HashMap<String, ChunkIdentifier> = HashMap::new();
@@ -55,7 +65,12 @@ async fn main() {
     }
 
     let mut volume_cache: HashMap<usize, PyLevel2File> = HashMap::new();
-    volume_cache.insert(latest_volume.as_number(), convert_nexrad_file(get_records(chunk_cache.get(&latest_volume.as_number()).unwrap())));
+    volume_cache.insert(
+        latest_volume.as_number(),
+        convert_nexrad_file(get_records(
+            chunk_cache.get(&latest_volume.as_number()).unwrap(),
+        )),
+    );
 
     loop {
         println!("sleeping...");
@@ -66,7 +81,10 @@ async fn main() {
 
         let mut dirty_volumes: HashSet<usize> = HashSet::new();
 
-        let chunks = list_chunks_in_volume(site, latest_volume, 1000).await.ok().unwrap();
+        let chunks = list_chunks_in_volume(site, latest_volume, 1000)
+            .await
+            .ok()
+            .unwrap();
         for chunk_id in chunks {
             if !chunk_id_cache.contains_key(chunk_id.name()) {
                 dirty_volumes.insert(chunk_id.volume().as_number());
@@ -90,7 +108,8 @@ async fn main() {
         for volume_id in dirty_volumes {
             println!("Recalculate volume {}", volume_id);
 
-            let updated_volume = convert_nexrad_file(get_records(chunk_cache.get(&volume_id).unwrap()));
+            let updated_volume =
+                convert_nexrad_file(get_records(chunk_cache.get(&volume_id).unwrap()));
 
             println!("Updated Volume");
             println!("REF {}", updated_volume.reflectivity.len());
