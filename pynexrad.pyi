@@ -30,6 +30,47 @@ class PyLevel2File:
     velocity: List[PySweep]
 
 
+class PyChunkIdentifier:
+    """
+    PyChunkIdentifier identifies a particular chunk
+    """
+
+    site: str
+    volume: int
+    name: str
+
+
+class PyChunk:
+    """
+    PyChunk contains the date for a chunk
+    """
+
+    chunk_identifier: PyChunkIdentifier
+    data: bytes
+
+
+def get_latest_volume(site: str) -> int:
+    """
+    get_latest_volume finds the latest volume with data for a given site
+    """
+
+
+def list_chunks_in_volume(
+    site: str,
+    volume_id: int
+) -> List[PyChunkIdentifier]:
+    """
+    list_chunks_in_volume lists the chunks currently available for
+    the given site and volume id
+    """
+
+
+def download_chunk(chunk_identifier: PyChunkIdentifier) -> PyChunk:
+    """
+    download_chunk downloads the specified chunk
+    """
+
+
 def list_records(site: str, year: int, month: int, day: int) -> List[str]:
     """
     list_records downloads all available records for the given parameters
