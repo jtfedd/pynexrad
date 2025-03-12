@@ -1,4 +1,5 @@
 pub mod convert;
+pub mod convert_chunks;
 pub mod download_chunk;
 pub mod download_nexrad_file;
 pub mod get_latest_volume;
