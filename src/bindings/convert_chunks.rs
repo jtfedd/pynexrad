@@ -12,7 +12,7 @@ pub fn convert_chunks(py: Python, chunks: Vec<PyChunk>) -> PyResult<PyLevel2File
     Ok(result)
 }
 
-fn convert_chunks_impl<'a>(chunks: Vec<PyChunk>) -> PyLevel2File {
+fn convert_chunks_impl(chunks: Vec<PyChunk>) -> PyLevel2File {
     let nexrad_chunks: Vec<_> = chunks
         .iter()
         .map(|chunk| Chunk::new(chunk.data.clone()).expect("Can construct chunk from data"))
