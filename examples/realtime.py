@@ -49,12 +49,12 @@ while True:
     print("POLLING")
     print("LAST CHUNK", last_chunk.name)
 
-    dirty_volumes: Set[int] = set()
+    volumes_to_refresh: Set[int] = set()
 
     chunks = list_chunks_in_volume(site, latest_volume)
     for chunk_id in chunks:
         if chunk_id.name not in chunk_id_cache:
-            dirty_volumes.add(chunk_id.volume)
+            volumes_to_refresh.add(chunk_id.volume)
 
             chunk_id_cache[chunk_id.name] = chunk_id
             get_chunk(chunk_cache, chunk_id)
@@ -66,7 +66,7 @@ while True:
                 if latest_volume == 1000:
                     latest_volume = 1
 
-    for volume_id in dirty_volumes:
+    for volume_id in volumes_to_refresh:
         print("Recalculate volume", volume_id)
 
         updated_volume = convert_chunks(chunk_cache[volume_id])
