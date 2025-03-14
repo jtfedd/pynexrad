@@ -71,6 +71,13 @@ def download_chunk(chunk_identifier: PyChunkIdentifier) -> PyChunk:
     """
 
 
+def convert_chunks(chunks: List[PyChunk]) -> PyLevel2File:
+    """
+    convert_chunks converts the list of chunks (all from the same volume)
+    into a volume file
+    """
+
+
 def list_records(site: str, year: int, month: int, day: int) -> List[str]:
     """
     list_records downloads all available records for the given parameters
