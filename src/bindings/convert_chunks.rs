@@ -29,8 +29,6 @@ fn convert_chunks_impl(chunks: Vec<PyChunk>) -> PyLevel2File {
             }
             Chunk::IntermediateOrEnd(mid_chunk) => records.push(mid_chunk),
         };
-
-        // records.extend(chunk_records);
     }
 
     convert_nexrad_file(records)
