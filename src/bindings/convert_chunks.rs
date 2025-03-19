@@ -26,7 +26,7 @@ fn convert_chunks_impl(chunks: Vec<PyChunk>) -> PyLevel2File {
                 for record in start_chunk.records() {
                     records.push(Record::new(record.data().to_vec()));
                 }
-            },
+            }
             Chunk::IntermediateOrEnd(mid_chunk) => records.push(mid_chunk),
         };
 
