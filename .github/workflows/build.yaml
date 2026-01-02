@@ -52,8 +52,6 @@ jobs:
             manylinux: musllinux_1_2
           - runner: windows-latest
             target: x64
-          - runner: windows-latest
-            target: x86
           - runner: macos-latest
             target: aarch64
     steps:
