@@ -2,8 +2,8 @@ use pyo3::prelude::*;
 
 use crate::model::{sweep::Sweep, sweep_type::*};
 
+#[pyclass]
 #[derive(Clone)]
-#[pyclass(name = "Sweep")]
 pub struct PySweep {
     #[pyo3(get)]
     pub elevation: f32,
