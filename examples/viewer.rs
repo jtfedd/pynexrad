@@ -1,7 +1,7 @@
 use image::{DynamicImage, GenericImageView, ImageFormat};
 use nannou::prelude::*;
 use nexrad_data::volume;
-use pynexrad::{convert::convert_nexrad_file, pymodel::py_level2_file::PyLevel2File};
+use pynexrad::{bindings::convert::convert_nexrad_file, pymodel::py_level2_file::PyLevel2File};
 use std::fs::File;
 use std::io::BufReader;
 
@@ -28,7 +28,7 @@ fn model(app: &App) -> Model {
     let file = volume::File::new(bytes);
 
     println!("Converting file");
-    let pyradar = convert_nexrad_file(&file);
+    let pyradar = convert_nexrad_file(file.records());
 
     let ref_scale = image::load(
         BufReader::new(File::open("examples/reflectivity_scale.png").expect("file exists")),
