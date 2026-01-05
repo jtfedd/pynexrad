@@ -34,6 +34,10 @@ jobs:
         cache: 'pip'
         cache-dependency-path: |
           requirements-dev.txt
+    - name: Create and activate virtual environment
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate
     - name: Install dependencies
       run: pip install -r requirements-dev.txt
     - name: Built pynexrad
