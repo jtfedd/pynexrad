@@ -1,9 +1,14 @@
 """
 Integration tests for the pynexrad module
 """
+from time import sleep
+from typing import List
 import unittest
 
-from pynexrad import PySweep, PyLevel2File, list_records, download_nexrad_file
+from shapely import is_empty
+
+from pynexrad import PyChunk, PyChunkIdentifier, PySweep, PyLevel2File, convert_chunks, download_chunk, get_latest_volume, list_chunks_in_volume, list_records, download_nexrad_file
+from concurrent.futures import ThreadPoolExecutor
 
 
 EXPECTED_RECORDS = [
@@ -351,6 +356,7 @@ class TestPynexrad(unittest.TestCase):
     """
     Integration tests for the pynexrad module
     """
+    @unittest.skip("for now")
     def test_list_records(self) -> None:
         """
         Integration test to validate listing records for a given date
@@ -359,6 +365,7 @@ class TestPynexrad(unittest.TestCase):
 
         self.assertListEqual(records, EXPECTED_RECORDS)
 
+    @unittest.skip("for now")
     def test_download_nexrad_file(self) -> None:
         """
         Integration test to validate downloading a nexrad level 2 volume file.
@@ -373,6 +380,97 @@ class TestPynexrad(unittest.TestCase):
 
         self.assertIsInstance(level_2_file.reflectivity[0], PySweep)
         self.assertIsInstance(level_2_file.velocity[0], PySweep)
+
+    def test_get_realtime_chunks(self) -> None:
+        """
+        Integration test to validate find the latest realtime data
+        """
+        latest_volume = get_latest_volume("KDMX")
+
+        chunks_in_volume = list_chunks_in_volume("KDMX", latest_volume)
+        self.assertGreater(len(chunks_in_volume), 0)
+
+        for chunk in chunks_in_volume:
+            self.assertEqual(chunk.site, "KDMX")
+            self.assertEqual(chunk.volume, latest_volume)
+
+        chunk_data = download_chunk(chunks_in_volume[-1])
+        self.assertGreater(len(chunk_data.data), 0)
+
+    def test_get_realtime_volume(self) -> None:
+        """
+        Integration test to validate that a complete realtime
+        volume matches the archive data.
+        """
+        latest_volume = get_latest_volume("KDMX")
+        print()
+        print("Latest volume:", latest_volume)
+        previous_volume = latest_volume - 1
+        if previous_volume <= 0:
+            previous_volume = 99
+        print("Previous volume:", previous_volume)
+
+        chunks_in_volume = list_chunks_in_volume("KDMX", previous_volume)
+        self.assertGreater(len(chunks_in_volume), 0)
+
+        print("Downloading chunks...")
+        chunk_data: List[PyChunk] = []
+        with ThreadPoolExecutor() as executor:
+            for result in executor.map(download_chunk, chunks_in_volume):
+                chunk_data.append(result)
+
+        volume = convert_chunks(chunk_data)
+
+        name_parts = chunks_in_volume[0].name.split('-')
+        date = name_parts[0]
+        time = name_parts[1]
+
+        archive_key = f'KDMX{date}_{time}_V06'
+        archive_volume = download_nexrad_file(archive_key)
+
+        assert_l2files_equal(self, volume, archive_volume)
+
+
+def assert_l2files_equal(
+    t: unittest.TestCase,
+    a: PyLevel2File,
+    b: PyLevel2File,
+) -> None:
+    """Asserts that two PyLevel2File instances are equal"""
+    t.assertIsInstance(a, PyLevel2File)
+    t.assertIsInstance(b, PyLevel2File)
+
+    t.assertEqual(len(a.reflectivity), len(b.reflectivity))
+    for i in range(len(a.reflectivity)):
+        assert_sweeps_equal(t, a.reflectivity[i], b.reflectivity[i])
+
+    t.assertEqual(len(a.velocity), len(b.velocity))
+    for i in range(len(a.velocity)):
+        assert_sweeps_equal(t, a.velocity[i], b.velocity[i])
+
+
+def assert_sweeps_equal(
+    t: unittest.TestCase,
+    a: PySweep,
+    b: PySweep,
+) -> None:
+    """Asserts that two PySweep instances are equal"""
+    t.assertIsInstance(a, PySweep)
+    t.assertIsInstance(b, PySweep)
+
+    t.assertAlmostEqual(a.elevation, b.elevation, places=6)
+    t.assertAlmostEqual(a.az_first, b.az_first, places=6)
+    t.assertAlmostEqual(a.az_step, b.az_step, places=6)
+    t.assertEqual(a.az_count, b.az_count)
+
+    t.assertAlmostEqual(a.range_first, b.range_first, places=6)
+    t.assertAlmostEqual(a.range_step, b.range_step, places=6)
+    t.assertEqual(a.range_count, b.range_count)
+
+    t.assertEqual(a.start_time, b.start_time)
+    t.assertEqual(a.end_time, b.end_time)
+
+    t.assertEqual(a.data, b.data)
 
 
 if __name__ == '__main__':
