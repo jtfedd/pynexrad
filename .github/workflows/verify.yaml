@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  PYTHON_VERSION: '3.12'
+
 jobs:
   format:
     runs-on: ubuntu-latest
@@ -19,3 +22,30 @@ jobs:
 
     - name: Check formatting
       run: cargo fmt --check
+  integration-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        cache-dependency-path: |
+          requirements-dev.txt
+    - name: Create virtual environment
+      run: |
+        python -m venv .venv
+    - name: Install dependencies
+      run: |
+        . .venv/bin/activate
+        pip install -r requirements-dev.txt
+    - name: Build pynexrad
+      run: |
+        . .venv/bin/activate
+        maturin develop
+    - name: Run tests
+      run: |
+        . .venv/bin/activate
+        python test/pynexrad_integration.py
