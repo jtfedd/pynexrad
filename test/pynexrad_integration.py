@@ -1,14 +1,21 @@
 """
 Integration tests for the pynexrad module
 """
-from time import sleep
 from typing import List
 import unittest
-
-from shapely import is_empty
-
-from pynexrad import PyChunk, PyChunkIdentifier, PySweep, PyLevel2File, convert_chunks, download_chunk, get_latest_volume, list_chunks_in_volume, list_records, download_nexrad_file
 from concurrent.futures import ThreadPoolExecutor
+
+from pynexrad import (
+    PyChunk,
+    PySweep,
+    PyLevel2File,
+    convert_chunks,
+    download_chunk,
+    get_latest_volume,
+    list_chunks_in_volume,
+    list_records,
+    download_nexrad_file,
+)
 
 
 EXPECTED_RECORDS = [
@@ -356,7 +363,6 @@ class TestPynexrad(unittest.TestCase):
     """
     Integration tests for the pynexrad module
     """
-    @unittest.skip("for now")
     def test_list_records(self) -> None:
         """
         Integration test to validate listing records for a given date
@@ -365,7 +371,6 @@ class TestPynexrad(unittest.TestCase):
 
         self.assertListEqual(records, EXPECTED_RECORDS)
 
-    @unittest.skip("for now")
     def test_download_nexrad_file(self) -> None:
         """
         Integration test to validate downloading a nexrad level 2 volume file.
