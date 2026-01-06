@@ -408,17 +408,13 @@ class TestPynexrad(unittest.TestCase):
         volume matches the archive data.
         """
         latest_volume = get_latest_volume("KDMX")
-        print()
-        print("Latest volume:", latest_volume)
         previous_volume = latest_volume - 1
         if previous_volume <= 0:
             previous_volume = 99
-        print("Previous volume:", previous_volume)
 
         chunks_in_volume = list_chunks_in_volume("KDMX", previous_volume)
         self.assertGreater(len(chunks_in_volume), 0)
 
-        print("Downloading chunks...")
         chunk_data: List[PyChunk] = []
         with ThreadPoolExecutor() as executor:
             for result in executor.map(download_chunk, chunks_in_volume):
