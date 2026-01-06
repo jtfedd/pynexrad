@@ -1,4 +1,4 @@
-use nexrad_data::volume::File;
+use nexrad_data::volume::Record;
 use nexrad_decode::messages::{digital_radar_data, volume_coverage_pattern, MessageContents};
 
 use crate::model::sweep::Sweep;
@@ -8,11 +8,11 @@ pub struct Volume {
 }
 
 impl Volume {
-    pub(crate) fn new(file: &File) -> Self {
+    pub(crate) fn new(records: Vec<Record>) -> Self {
         let mut radials: Vec<Box<digital_radar_data::Message>> = Vec::new();
         let mut vcp: Option<Box<volume_coverage_pattern::Message>> = None;
 
-        for mut record in file.records() {
+        for mut record in records {
             if record.compressed() {
                 record = record
                     .decompress()

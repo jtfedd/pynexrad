@@ -1,4 +1,4 @@
-use nexrad_data::volume::File;
+use nexrad_data::volume::Record;
 
 use crate::dealias_region::region_dealias::dealias_region_based;
 use crate::filter::despeckle::despeckle;
@@ -6,8 +6,8 @@ use crate::filter::velocity_ref_threshold::apply_reflectivity_threshold;
 use crate::model::volume::Volume;
 use crate::pymodel::py_level2_file::PyLevel2File;
 
-pub fn convert_nexrad_file(data_file: &File) -> PyLevel2File {
-    let mut volume = Volume::new(data_file);
+pub fn convert_nexrad_file(records: Vec<Record>) -> PyLevel2File {
+    let mut volume = Volume::new(records);
 
     apply_reflectivity_threshold(&mut volume, -5.0);
     despeckle(&mut volume, 50);
